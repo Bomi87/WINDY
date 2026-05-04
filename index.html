@@ -93,12 +93,14 @@
       background: #e0e7ff;
     }
 
+    /* 모바일에서 달력 picker가 열리도록 pointer-events:none 제거 */
     .hidden-date {
-      position: absolute;
+      position: fixed;
+      left: -1000px;
+      top: 0;
+      width: 40px;
+      height: 40px;
       opacity: 0;
-      width: 1px;
-      height: 1px;
-      pointer-events: none;
     }
 
     .date-time-help {
@@ -348,9 +350,15 @@
     function openCalendar() {
       const picker = document.getElementById("calendarPicker");
 
-      if (picker.showPicker) {
-        picker.showPicker();
-      } else {
+      try {
+        picker.focus();
+
+        if (typeof picker.showPicker === "function") {
+          picker.showPicker();
+        } else {
+          picker.click();
+        }
+      } catch (e) {
         picker.click();
       }
     }
