@@ -35,30 +35,51 @@
       color: #374151;
     }
 
-input {
-  width: 70%;
-  display: block;
-  padding: 12px;
-  margin-top: 6px;
-  font-size: 16px;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  box-sizing: border-box;
-}
+    input {
+      width: 100%;
+      display: block;
+      padding: 12px;
+      margin-top: 6px;
+      font-size: 16px;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      box-sizing: border-box;
+    }
 
-button {
-  width: 70%;
-  display: block;
-  margin: 22px auto 0 auto;
-  padding: 13px;
-  font-size: 16px;
-  font-weight: bold;
-  background: #2563eb;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-}
+    .field {
+      width: 70%;
+    }
+
+    .date-time-row {
+      width: 70%;
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+      margin-top: 0;
+    }
+
+    .date-time-row .field {
+      width: 50%;
+    }
+
+    .date-time-help {
+      width: 70%;
+      margin-top: 8px;
+    }
+
+    button {
+      width: 70%;
+      display: block;
+      margin: 22px auto 0 auto;
+      padding: 13px;
+      font-size: 16px;
+      font-weight: bold;
+      background: #2563eb;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
 
     button:hover {
       background: #1d4ed8;
@@ -96,6 +117,24 @@ button {
       color: #2563eb;
       font-weight: bold;
     }
+
+    @media (max-width: 520px) {
+      .field,
+      .date-time-row,
+      .date-time-help,
+      button {
+        width: 100%;
+      }
+
+      .date-time-row {
+        flex-direction: column;
+        gap: 0;
+      }
+
+      .date-time-row .field {
+        width: 100%;
+      }
+    }
   </style>
 </head>
 
@@ -103,28 +142,36 @@ button {
   <div class="container">
     <h2>Windy Airport Weather Check</h2>
 
-    <label for="icao">Airport ICAO</label>
-    <input id="icao" type="text" placeholder="예: KPIT" maxlength="4" />
+    <div class="field">
+      <label for="icao">Airport ICAO</label>
+      <input id="icao" type="text" placeholder="예: KPIT" maxlength="4" />
+    </div>
 
- <label for="localDate">Local Date</label>
-<input
-  id="localDate"
-  type="text"
-  placeholder="YYYY-MM-DD"
-  maxlength="10"
-  inputmode="numeric"
-/>
+    <div class="date-time-row">
+      <div class="field">
+        <label for="localDate">Local Date</label>
+        <input
+          id="localDate"
+          type="text"
+          placeholder="YYYY-MM-DD"
+          maxlength="10"
+          inputmode="numeric"
+        />
+      </div>
 
+      <div class="field">
+        <label for="localTime">Local Time</label>
+        <input
+          id="localTime"
+          type="text"
+          placeholder="예: 23:40"
+          maxlength="5"
+          inputmode="numeric"
+        />
+      </div>
+    </div>
 
-    <label for="localTime">Local Time</label>
-    <input
-      id="localTime"
-      type="text"
-      placeholder="예: 23:40"
-      maxlength="5"
-      inputmode="numeric"
-    />
-    <div class="small">24시간 형식. ex) 23:40</div>
+    <div class="small date-time-help">24시간 형식. ex) 20260508 / 23:40</div>
 
     <button id="openBtn" onclick="generateWindyLink()">Windy 링크 생성 및 열기</button>
 
@@ -148,7 +195,7 @@ button {
       resultBox.innerHTML = "";
 
       const icao = icaoInput.value.trim().toUpperCase();
-   const localDate = dateInput.value.trim();
+      const localDate = dateInput.value.trim();
       const localTime = timeInput.value.trim();
 
       if (!icao) {
@@ -161,15 +208,15 @@ button {
         return;
       }
 
-  if (!localDate) {
-  errorBox.textContent = "Local Date를 입력하세요.";
-  return;
-}
+      if (!localDate) {
+        errorBox.textContent = "Local Date를 입력하세요.";
+        return;
+      }
 
-if (!/^\d{4}-\d{2}-\d{2}$/.test(localDate)) {
-  errorBox.textContent = "Local Date는 YYYY-MM-DD 형식으로 입력하세요. 예: 2026-05-08";
-  return;
-}
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(localDate)) {
+        errorBox.textContent = "Local Date는 YYYY-MM-DD 형식으로 입력하세요. 예: 2026-05-08";
+        return;
+      }
 
       if (!localTime) {
         errorBox.textContent = "Local Time을 입력하세요.";
@@ -204,7 +251,7 @@ if (!/^\d{4}-\d{2}-\d{2}$/.test(localDate)) {
           <strong>Airport:</strong> ${data.icao}<br>
           <strong>Latitude:</strong> ${data.lat}<br>
           <strong>Longitude:</strong> ${data.lon}<br>
-          <strong>Timezone:</strong> ${data.timeZoneId || ""}<br>
+          <strong>Timezone:</strong> ${data.timeZoneId || data.timezone || ""}<br>
           <strong>Local Time:</strong> ${data.localDate} ${data.localTime}<br>
           <strong>UTC:</strong> ${data.utc}Z<br>
           <strong>Windy URL:</strong><br>
@@ -224,17 +271,19 @@ if (!/^\d{4}-\d{2}-\d{2}$/.test(localDate)) {
     document.getElementById("icao").addEventListener("input", function () {
       this.value = this.value.toUpperCase();
     });
-document.getElementById("localDate").addEventListener("input", function () {
-  let v = this.value.replace(/[^0-9]/g, "");
 
-  if (v.length >= 5 && v.length <= 6) {
-    v = v.slice(0, 4) + "-" + v.slice(4);
-  } else if (v.length >= 7) {
-    v = v.slice(0, 4) + "-" + v.slice(4, 6) + "-" + v.slice(6, 8);
-  }
+    document.getElementById("localDate").addEventListener("input", function () {
+      let v = this.value.replace(/[^0-9]/g, "");
 
-  this.value = v.slice(0, 10);
-});
+      if (v.length >= 5 && v.length <= 6) {
+        v = v.slice(0, 4) + "-" + v.slice(4);
+      } else if (v.length >= 7) {
+        v = v.slice(0, 4) + "-" + v.slice(4, 6) + "-" + v.slice(6, 8);
+      }
+
+      this.value = v.slice(0, 10);
+    });
+
     document.getElementById("localTime").addEventListener("input", function () {
       let v = this.value.replace(/[^0-9]/g, "");
 
