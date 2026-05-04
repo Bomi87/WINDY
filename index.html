@@ -94,6 +94,13 @@
       cursor: not-allowed;
     }
 
+    #localDate,
+    .calendar-day,
+    .calendar-header button,
+    #openBtn {
+      touch-action: manipulation;
+    }
+
     .result {
       margin-top: 22px;
       padding: 14px;
@@ -174,6 +181,8 @@
       border-radius: 6px;
       cursor: pointer;
       color: #111827;
+      user-select: none;
+      -webkit-user-select: none;
     }
 
     .calendar-day:hover {
@@ -355,10 +364,14 @@
         if (ymd === selectedValue) div.classList.add("selected");
 
         div.textContent = day;
-        div.onclick = function () {
+
+        div.addEventListener("pointerdown", function (event) {
+          event.preventDefault();
+          event.stopPropagation();
+
           document.getElementById("localDate").value = ymd;
           closeCalendar();
-        };
+        }, { passive: false });
 
         grid.appendChild(div);
       }
@@ -454,8 +467,9 @@
 
     localDateInput.addEventListener("pointerdown", function (event) {
       event.preventDefault();
+      event.stopPropagation();
       openCalendar();
-    });
+    }, { passive: false });
 
     document.getElementById("icao").addEventListener("input", function () {
       this.value = this.value.toUpperCase();
