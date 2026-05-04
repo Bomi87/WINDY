@@ -104,8 +104,15 @@
     <label for="icao">Airport ICAO</label>
     <input id="icao" type="text" placeholder="예: KPIT" maxlength="4" />
 
-    <label for="localDate">Local Date</label>
-    <input id="localDate" type="date" />
+ <label for="localDate">Local Date</label>
+<input
+  id="localDate"
+  type="text"
+  placeholder="예: 2026-05-08 또는 20260508"
+  maxlength="10"
+  inputmode="numeric"
+/>
+<div class="small">YYYY-MM-DD 또는 YYYYMMDD 형식으로 입력하세요. 예: 2026-05-08, 20260508</div>
 
     <label for="localTime">Local Time</label>
     <input
@@ -139,7 +146,7 @@
       resultBox.innerHTML = "";
 
       const icao = icaoInput.value.trim().toUpperCase();
-      const localDate = dateInput.value;
+   const localDate = dateInput.value.trim();
       const localTime = timeInput.value.trim();
 
       if (!icao) {
@@ -152,10 +159,15 @@
         return;
       }
 
-      if (!localDate) {
-        errorBox.textContent = "Local Date를 입력하세요.";
-        return;
-      }
+  if (!localDate) {
+  errorBox.textContent = "Local Date를 입력하세요.";
+  return;
+}
+
+if (!/^\d{4}-\d{2}-\d{2}$/.test(localDate)) {
+  errorBox.textContent = "Local Date는 YYYY-MM-DD 형식으로 입력하세요. 예: 2026-05-08";
+  return;
+}
 
       if (!localTime) {
         errorBox.textContent = "Local Time을 입력하세요.";
@@ -210,7 +222,17 @@
     document.getElementById("icao").addEventListener("input", function () {
       this.value = this.value.toUpperCase();
     });
+document.getElementById("localDate").addEventListener("input", function () {
+  let v = this.value.replace(/[^0-9]/g, "");
 
+  if (v.length >= 5 && v.length <= 6) {
+    v = v.slice(0, 4) + "-" + v.slice(4);
+  } else if (v.length >= 7) {
+    v = v.slice(0, 4) + "-" + v.slice(4, 6) + "-" + v.slice(6, 8);
+  }
+
+  this.value = v.slice(0, 10);
+});
     document.getElementById("localTime").addEventListener("input", function () {
       let v = this.value.replace(/[^0-9]/g, "");
 
