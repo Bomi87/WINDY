@@ -108,8 +108,14 @@
     <input id="localDate" type="date" />
 
     <label for="localTime">Local Time</label>
-    <input id="localTime" type="time" step="3600" />
-    <div class="small">입력 시간은 해당 공항의 Local Time 기준입니다.</div>
+    <input
+      id="localTime"
+      type="text"
+      placeholder="예: 23:40"
+      maxlength="5"
+      inputmode="numeric"
+    />
+    <div class="small">24시간 형식으로 입력하세요. 예: 03:00, 14:30, 23:40</div>
 
     <button id="openBtn" onclick="generateWindyLink()">Windy 링크 생성 및 열기</button>
 
@@ -118,7 +124,6 @@
   </div>
 
   <script>
-    // 여기에 Apps Script Web App URL 붙여넣기
     const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxlNZ3NH_aMp9wq56gLxWKNLLjeWPs9WOXstOFcWHL0KYj59afx2EltwOyFiFlSxGucWQ/exec";
 
     async function generateWindyLink() {
@@ -135,7 +140,7 @@
 
       const icao = icaoInput.value.trim().toUpperCase();
       const localDate = dateInput.value;
-      const localTime = timeInput.value;
+      const localTime = timeInput.value.trim();
 
       if (!icao) {
         errorBox.textContent = "공항 ICAO를 입력하세요.";
@@ -154,6 +159,11 @@
 
       if (!localTime) {
         errorBox.textContent = "Local Time을 입력하세요.";
+        return;
+      }
+
+      if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(localTime)) {
+        errorBox.textContent = "Local Time은 24시간 형식 HH:mm으로 입력하세요. 예: 03:00, 14:30, 23:40";
         return;
       }
 
@@ -180,7 +190,7 @@
           <strong>Airport:</strong> ${data.icao}<br>
           <strong>Latitude:</strong> ${data.lat}<br>
           <strong>Longitude:</strong> ${data.lon}<br>
-          <strong>Timezone:</strong> ${data.timezone}<br>
+          <strong>Timezone:</strong> ${data.timeZoneId || ""}<br>
           <strong>Local Time:</strong> ${data.localDate} ${data.localTime}<br>
           <strong>UTC:</strong> ${data.utc}Z<br>
           <strong>Windy URL:</strong><br>
@@ -199,6 +209,16 @@
 
     document.getElementById("icao").addEventListener("input", function () {
       this.value = this.value.toUpperCase();
+    });
+
+    document.getElementById("localTime").addEventListener("input", function () {
+      let v = this.value.replace(/[^0-9]/g, "");
+
+      if (v.length >= 3) {
+        v = v.slice(0, 2) + ":" + v.slice(2, 4);
+      }
+
+      this.value = v.slice(0, 5);
     });
   </script>
 </body>
