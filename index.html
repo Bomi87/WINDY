@@ -582,7 +582,7 @@
       aircraftList.forEach(function(aircraft) {
         const items = schedules[aircraft] || [];
 
-        const icon = aircraft === "ACJ" ? "🛩️" : "✈️";
+        const icon = aircraft === "ACJ" ? "✈️" : "🛩️";
 
         const title = document.createElement("div");
         title.className = "schedule-aircraft-title " + aircraft.toLowerCase();
