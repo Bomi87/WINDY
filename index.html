@@ -53,6 +53,7 @@
     .date-time-row {
       width: 70%;
       display: flex;
+      flex-direction: row;
       gap: 14px;
       align-items: flex-start;
       margin-top: 0;
@@ -62,13 +63,51 @@
       width: 50%;
     }
 
+    .date-input-wrap {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      margin-top: 6px;
+    }
+
+    .date-input-wrap input[type="text"] {
+      margin-top: 0;
+      flex: 1;
+    }
+
+    .calendar-btn {
+      width: 44px;
+      min-width: 44px;
+      height: 44px;
+      margin: 0;
+      padding: 0;
+      border-radius: 8px;
+      background: #eef2ff;
+      color: #1f2937;
+      border: 1px solid #d1d5db;
+      font-size: 20px;
+      cursor: pointer;
+    }
+
+    .calendar-btn:hover {
+      background: #e0e7ff;
+    }
+
+    .hidden-date {
+      position: absolute;
+      opacity: 0;
+      width: 1px;
+      height: 1px;
+      pointer-events: none;
+    }
+
     .date-time-help {
       width: 70%;
       margin-top: 8px;
     }
 
     button {
-      width: 35%;
+      width: 70%;
       display: block;
       margin: 22px auto 0 auto;
       padding: 13px;
@@ -119,20 +158,40 @@
     }
 
     @media (max-width: 520px) {
+      body {
+        padding: 12px;
+      }
+
+      .container {
+        padding: 18px;
+      }
+
       .field,
-      .date-time-row,
       .date-time-help,
       button {
         width: 100%;
       }
 
       .date-time-row {
-        flex-direction: column;
-        gap: 0;
+        width: 100%;
+        flex-direction: row;
+        gap: 10px;
       }
 
       .date-time-row .field {
-        width: 100%;
+        width: 50%;
+      }
+
+      input {
+        font-size: 15px;
+        padding: 11px;
+      }
+
+      .calendar-btn {
+        width: 40px;
+        min-width: 40px;
+        height: 40px;
+        font-size: 18px;
       }
     }
   </style>
@@ -150,13 +209,31 @@
     <div class="date-time-row">
       <div class="field">
         <label for="localDate">Local Date</label>
-        <input
-          id="localDate"
-          type="text"
-          placeholder="YYYY-MM-DD"
-          maxlength="10"
-          inputmode="numeric"
-        />
+
+        <div class="date-input-wrap">
+          <input
+            id="localDate"
+            type="text"
+            placeholder="YYYY-MM-DD"
+            maxlength="10"
+            inputmode="numeric"
+          />
+
+          <button
+            type="button"
+            class="calendar-btn"
+            onclick="openCalendar()"
+            title="날짜 선택"
+          >
+            📅
+          </button>
+
+          <input
+            id="calendarPicker"
+            class="hidden-date"
+            type="date"
+          />
+        </div>
       </div>
 
       <div class="field">
@@ -264,9 +341,25 @@
         errorBox.textContent = "Apps Script 연결 중 오류가 발생했습니다: " + err.message;
       } finally {
         button.disabled = false;
-        button.textContent = "Windy 링크 생성 및 열기";
+        button.textContent = "OPEN";
       }
     }
+
+    function openCalendar() {
+      const picker = document.getElementById("calendarPicker");
+
+      if (picker.showPicker) {
+        picker.showPicker();
+      } else {
+        picker.click();
+      }
+    }
+
+    document.getElementById("calendarPicker").addEventListener("change", function () {
+      if (this.value) {
+        document.getElementById("localDate").value = this.value;
+      }
+    });
 
     document.getElementById("icao").addEventListener("input", function () {
       this.value = this.value.toUpperCase();
