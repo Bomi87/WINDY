@@ -20,6 +20,7 @@
       padding: 24px;
       border-radius: 14px;
       box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+      position: relative;
     }
 
     h2 {
@@ -48,19 +49,6 @@
       background: #ffffff;
     }
 
-    input[type="date"] {
-      height: 52px;
-      min-width: 0;
-      max-width: 100%;
-      padding: 12px;
-      font-size: 16px;
-      box-sizing: border-box;
-      background: #ffffff;
-      color: #111827;
-      -webkit-appearance: auto;
-      appearance: auto;
-    }
-
     .field {
       width: 70%;
     }
@@ -75,6 +63,7 @@
 
     .date-time-row .field {
       width: 100%;
+      min-width: 0;
     }
 
     .date-time-help {
@@ -133,6 +122,75 @@
       font-weight: bold;
     }
 
+    .calendar-popup {
+      display: none;
+      position: absolute;
+      z-index: 9999;
+      width: 280px;
+      background: white;
+      border: 1px solid #d1d5db;
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+      padding: 12px;
+      box-sizing: border-box;
+    }
+
+    .calendar-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      font-weight: bold;
+      color: #111827;
+    }
+
+    .calendar-header button {
+      width: 36px;
+      height: 32px;
+      margin: 0;
+      padding: 0;
+      border-radius: 6px;
+      font-size: 16px;
+      background: #eef2ff;
+      color: #111827;
+    }
+
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+      text-align: center;
+      font-size: 13px;
+    }
+
+    .calendar-day-name {
+      font-weight: bold;
+      color: #6b7280;
+      padding: 6px 0;
+    }
+
+    .calendar-day {
+      padding: 8px 0;
+      border-radius: 6px;
+      cursor: pointer;
+      color: #111827;
+    }
+
+    .calendar-day:hover {
+      background: #dbeafe;
+    }
+
+    .calendar-day.empty {
+      cursor: default;
+      background: transparent;
+    }
+
+    .calendar-day.selected {
+      background: #2563eb;
+      color: white;
+      font-weight: bold;
+    }
+
     @media (max-width: 520px) {
       body {
         padding: 12px;
@@ -154,11 +212,15 @@
         gap: 10px;
       }
 
-      input,
-      input[type="date"] {
+      input {
         height: 52px;
         font-size: 15px;
         padding: 11px;
+      }
+
+      .calendar-popup {
+        width: calc(100% - 36px);
+        left: 18px !important;
       }
     }
   </style>
@@ -178,7 +240,11 @@
         <label for="localDate">Local Date</label>
         <input
           id="localDate"
-          type="date"
+          type="text"
+          placeholder="YYYY-MM-DD"
+          maxlength="10"
+          inputmode="numeric"
+          readonly
         />
       </div>
 
@@ -194,16 +260,109 @@
       </div>
     </div>
 
-    <div class="small date-time-help">날짜는 달력 선택 / 시간은 24시간 형식 ex) 23:40</div>
+    <div class="small date-time-help">날짜는 입력창 클릭 후 선택 / 시간은 24시간 형식 ex) 23:40</div>
 
     <button id="openBtn" onclick="generateWindyLink()">OPEN</button>
 
     <div id="error" class="error"></div>
     <div id="result" class="result"></div>
+
+    <div id="calendarPopup" class="calendar-popup">
+      <div class="calendar-header">
+        <button type="button" onclick="changeMonth(-1)">‹</button>
+        <span id="calendarTitle"></span>
+        <button type="button" onclick="changeMonth(1)">›</button>
+      </div>
+      <div id="calendarGrid" class="calendar-grid"></div>
+    </div>
   </div>
 
   <script>
     const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxlNZ3NH_aMp9wq56gLxWKNLLjeWPs9WOXstOFcWHL0KYj59afx2EltwOyFiFlSxGucWQ/exec";
+
+    let currentCalendarDate = new Date();
+
+    function pad2(n) {
+      return String(n).padStart(2, "0");
+    }
+
+    function formatYmd(date) {
+      return date.getFullYear() + "-" + pad2(date.getMonth() + 1) + "-" + pad2(date.getDate());
+    }
+
+    function openCalendar() {
+      const input = document.getElementById("localDate");
+      const popup = document.getElementById("calendarPopup");
+
+      const value = input.value.trim();
+      if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+        const parts = value.split("-").map(Number);
+        currentCalendarDate = new Date(parts[0], parts[1] - 1, parts[2]);
+      }
+
+      renderCalendar();
+
+      const rect = input.getBoundingClientRect();
+      const containerRect = document.querySelector(".container").getBoundingClientRect();
+
+      popup.style.left = (rect.left - containerRect.left) + "px";
+      popup.style.top = (rect.bottom - containerRect.top + 6) + "px";
+      popup.style.display = "block";
+    }
+
+    function closeCalendar() {
+      document.getElementById("calendarPopup").style.display = "none";
+    }
+
+    function changeMonth(diff) {
+      currentCalendarDate.setMonth(currentCalendarDate.getMonth() + diff);
+      renderCalendar();
+    }
+
+    function renderCalendar() {
+      const year = currentCalendarDate.getFullYear();
+      const month = currentCalendarDate.getMonth();
+
+      document.getElementById("calendarTitle").textContent = year + "-" + pad2(month + 1);
+
+      const grid = document.getElementById("calendarGrid");
+      grid.innerHTML = "";
+
+      const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+      dayNames.forEach(function (name) {
+        const div = document.createElement("div");
+        div.className = "calendar-day-name";
+        div.textContent = name;
+        grid.appendChild(div);
+      });
+
+      const firstDay = new Date(year, month, 1).getDay();
+      const lastDate = new Date(year, month + 1, 0).getDate();
+      const selectedValue = document.getElementById("localDate").value;
+
+      for (let i = 0; i < firstDay; i++) {
+        const empty = document.createElement("div");
+        empty.className = "calendar-day empty";
+        grid.appendChild(empty);
+      }
+
+      for (let day = 1; day <= lastDate; day++) {
+        const date = new Date(year, month, day);
+        const ymd = formatYmd(date);
+
+        const div = document.createElement("div");
+        div.className = "calendar-day";
+        if (ymd === selectedValue) div.classList.add("selected");
+
+        div.textContent = day;
+        div.onclick = function () {
+          document.getElementById("localDate").value = ymd;
+          closeCalendar();
+        };
+
+        grid.appendChild(div);
+      }
+    }
 
     async function generateWindyLink() {
       const icaoInput = document.getElementById("icao");
@@ -291,6 +450,8 @@
       }
     }
 
+    document.getElementById("localDate").addEventListener("click", openCalendar);
+
     document.getElementById("icao").addEventListener("input", function () {
       this.value = this.value.toUpperCase();
     });
@@ -314,6 +475,19 @@
         if (!button.disabled) {
           generateWindyLink();
         }
+      }
+    });
+
+    document.addEventListener("click", function (event) {
+      const popup = document.getElementById("calendarPopup");
+      const dateInput = document.getElementById("localDate");
+
+      if (
+        popup.style.display === "block" &&
+        !popup.contains(event.target) &&
+        event.target !== dateInput
+      ) {
+        closeCalendar();
       }
     });
   </script>
