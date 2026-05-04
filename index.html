@@ -71,20 +71,12 @@
       margin-top: 8px;
     }
 
-    .button-row {
-      width: 70%;
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin: 22px auto 0 auto;
-    }
-
     button {
       width: 35%;
       display: block;
-      margin: 0;
+      margin: 22px auto 0 auto;
       padding: 13px;
-      font-size: 15px;
+      font-size: 16px;
       font-weight: bold;
       background: #2563eb;
       color: white;
@@ -106,53 +98,9 @@
     #localTime,
     .calendar-day,
     .calendar-header button,
-    #openWebBtn,
-    #openAppBtn {
-      touch-action: manipulation;
-    }
-
-    .schedule-box {
-      width: 70%;
-      margin: 22px auto 0 auto;
-      padding: 14px;
-      background: #f3f4f6;
-      border-radius: 10px;
-      box-sizing: border-box;
-    }
-
-    .schedule-title {
-      font-weight: bold;
-      margin-bottom: 10px;
-      color: #111827;
-    }
-
-    .schedule-aircraft-title {
-      font-weight: bold;
-      margin: 12px 0 6px 0;
-      color: #2563eb;
-    }
-
+    #openBtn,
     .schedule-item {
-      width: 100%;
-      text-align: left;
-      margin: 6px 0;
-      padding: 10px;
-      background: #ffffff;
-      color: #111827;
-      border: 1px solid #d1d5db;
-      border-radius: 8px;
-      font-size: 13px;
-      cursor: pointer;
-    }
-
-    .schedule-item:hover {
-      background: #e0e7ff;
-    }
-
-    .schedule-empty {
-      font-size: 13px;
-      color: #6b7280;
-      padding: 4px 0;
+      touch-action: manipulation;
     }
 
     .result {
@@ -254,6 +202,52 @@
       font-weight: bold;
     }
 
+    .schedule-box {
+      width: 70%;
+      margin: 22px auto 0 auto;
+      padding: 14px;
+      background: #f3f4f6;
+      border-radius: 10px;
+      box-sizing: border-box;
+    }
+
+    .schedule-title {
+      font-weight: bold;
+      margin-bottom: 10px;
+      color: #111827;
+      font-size: 15px;
+    }
+
+    .schedule-aircraft-title {
+      font-weight: bold;
+      margin: 12px 0 6px 0;
+      color: #2563eb;
+      font-size: 14px;
+    }
+
+    .schedule-item {
+      width: 100%;
+      text-align: left;
+      margin: 6px 0;
+      padding: 10px;
+      background: #ffffff;
+      color: #111827;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    .schedule-item:hover {
+      background: #e0e7ff;
+    }
+
+    .schedule-empty {
+      font-size: 13px;
+      color: #6b7280;
+      padding: 4px 0;
+    }
+
     @media (max-width: 520px) {
       body {
         padding: 12px;
@@ -266,24 +260,14 @@
       .field,
       .date-time-row,
       .date-time-help,
-      .button-row,
-      .schedule-box {
+      .schedule-box,
+      button {
         width: 100%;
       }
 
       .date-time-row {
         grid-template-columns: 1fr 1fr;
         gap: 10px;
-      }
-
-      .button-row {
-        grid-template-columns: 1fr 1fr;
-        gap: 8px;
-      }
-
-      button {
-        font-size: 13px;
-        padding: 12px 6px;
       }
 
       input {
@@ -337,19 +321,15 @@
 
     <div class="small date-time-help">날짜는 입력창 클릭 후 선택 / 시간은 24시간 형식 ex) 23:40</div>
 
-    <div class="button-row">
-      <button id="openWebBtn" onclick="generateWindyLink('web')">OPEN WEB</button>
-      <button id="openAppBtn" onclick="generateWindyLink('app')">OPEN WINDY APP</button>
-    </div>
+    <button id="openBtn" onclick="generateWindyLink()">OPEN</button>
 
     <div id="error" class="error"></div>
+    <div id="result" class="result"></div>
 
     <div id="scheduleBox" class="schedule-box">
       <div class="schedule-title">Schedule</div>
       <div id="scheduleContent" class="schedule-content">스케줄 불러오는 중...</div>
     </div>
-
-    <div id="result" class="result"></div>
 
     <div id="calendarPopup" class="calendar-popup">
       <div class="calendar-header">
@@ -372,25 +352,6 @@
 
     function formatYmd(date) {
       return date.getFullYear() + "-" + pad2(date.getMonth() + 1) + "-" + pad2(date.getDate());
-    }
-
-    function setButtonsDisabled(disabled, webText, appText) {
-      const webBtn = document.getElementById("openWebBtn");
-      const appBtn = document.getElementById("openAppBtn");
-
-      webBtn.disabled = disabled;
-      appBtn.disabled = disabled;
-
-      webBtn.textContent = webText;
-      appBtn.textContent = appText;
-    }
-
-    function openWindyUrl(windyUrl, mode) {
-      if (mode === "app") {
-        window.location.href = windyUrl;
-      } else {
-        window.open(windyUrl, "_blank");
-      }
     }
 
     function openCalendar() {
@@ -524,6 +485,7 @@
 
           btn.addEventListener("pointerdown", function(event) {
             event.preventDefault();
+            event.stopPropagation();
             applySchedule(item);
           }, { passive: false });
 
@@ -539,10 +501,11 @@
       document.getElementById("error").textContent = "";
     }
 
-    async function generateWindyLink(mode) {
+    async function generateWindyLink() {
       const icaoInput = document.getElementById("icao");
       const dateInput = document.getElementById("localDate");
       const timeInput = document.getElementById("localTime");
+      const button = document.getElementById("openBtn");
       const errorBox = document.getElementById("error");
       const resultBox = document.getElementById("result");
 
@@ -584,7 +547,8 @@
         return;
       }
 
-      setButtonsDisabled(true, "처리 중...", "처리 중...");
+      button.disabled = true;
+      button.textContent = "처리 중...";
 
       try {
         const apiUrl =
@@ -613,12 +577,13 @@
           <a href="${data.windyUrl}" target="_blank">${data.windyUrl}</a>
         `;
 
-        openWindyUrl(data.windyUrl, mode);
+        window.open(data.windyUrl, "_blank");
 
       } catch (err) {
         errorBox.textContent = "Apps Script 연결 중 오류가 발생했습니다: " + err.message;
       } finally {
-        setButtonsDisabled(false, "OPEN WEB", "OPEN WINDY APP");
+        button.disabled = false;
+        button.textContent = "OPEN";
       }
     }
 
@@ -648,10 +613,10 @@
       if (event.key === "Enter") {
         event.preventDefault();
 
-        const webBtn = document.getElementById("openWebBtn");
+        const button = document.getElementById("openBtn");
 
-        if (!webBtn.disabled) {
-          generateWindyLink("web");
+        if (!button.disabled) {
+          generateWindyLink();
         }
       }
     });
