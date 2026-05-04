@@ -231,39 +231,36 @@
       font-size: 15px;
     }
 
-    .schedule-aircraft-title {
-      font-weight: bold;
-      margin: 12px 0 6px 0;
-      color: #2563eb;
-      font-size: 14px;
-    }
+.schedule-aircraft-title {
+  font-weight: bold;
+  margin: 12px 0 6px 0;
+  font-size: 14px;
+}
 
-    .schedule-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      margin: 6px 0;
-      padding: 10px 12px;
-      background: #ffffff;
-      border: 1px solid #d1d5db;
-      border-radius: 8px;
-      border-left: 6px solid #d1d5db;
-    }
+.schedule-aircraft-title.acj {
+  color: #f97316; /* 주황색 */
+}
 
-    .schedule-row.type-dep {
-      border-left-color: #2563eb;
-    }
+.schedule-aircraft-title.g650 {
+  color: #84cc16; /* 연두색 */
+}
 
-    .schedule-row.type-arr {
-      border-left-color: #16a34a;
-    }
+ .schedule-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 6px 0;
+  padding: 10px 12px;
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+}
 
-    .schedule-row.active {
-      border: 2px solid #2563eb;
-      border-left-width: 6px;
-      background: #eef4ff;
-    }
+.schedule-row.active {
+  border: 2px solid #2563eb;
+  background: #eef4ff;
+}
 
     .schedule-text {
       flex: 1;
@@ -581,10 +578,10 @@
       aircraftList.forEach(function(aircraft) {
         const items = schedules[aircraft] || [];
 
-        const title = document.createElement("div");
-        title.className = "schedule-aircraft-title";
-        title.textContent = aircraft;
-        box.appendChild(title);
+    const title = document.createElement("div");
+title.className = "schedule-aircraft-title " + aircraft.toLowerCase();
+title.textContent = aircraft;
+box.appendChild(title);
 
         if (!items.length) {
           const empty = document.createElement("div");
@@ -598,12 +595,7 @@
           const row = document.createElement("div");
           row.className = "schedule-row";
 
-          if (item.type === "DEP") {
-            row.classList.add("type-dep");
-          } else if (item.type === "ARR") {
-            row.classList.add("type-arr");
-          }
-
+      
           const text = document.createElement("div");
           text.className = "schedule-text";
 
