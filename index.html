@@ -78,16 +78,16 @@
       padding: 13px;
       font-size: 16px;
       font-weight: bold;
-   background: #6b7280;
-color: white;
+      background: #6b7280;
+      color: white;
       border: none;
       border-radius: 8px;
       cursor: pointer;
     }
 
-   button:hover {
-  background: #4b5563;
-}
+    button:hover {
+      background: #4b5563;
+    }
 
     button:disabled {
       background: #9ca3af;
@@ -231,36 +231,40 @@ color: white;
       font-size: 15px;
     }
 
-.schedule-aircraft-title {
-  font-weight: bold;
-  margin: 12px 0 6px 0;
-  font-size: 14px;
-}
+    .schedule-aircraft-title {
+      font-weight: bold;
+      margin: 12px 0 6px 0;
+      font-size: 14px;
+      color: #7c3aed;
+    }
 
-.schedule-aircraft-title.acj {
-  color: #f97316; /* 주황색 */
-}
+    .aircraft-title-wrap {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
 
-.schedule-aircraft-title.g650 {
-  color: #84cc16; /* 연두색 */
-}
+    .aircraft-icon {
+      font-size: 16px;
+      line-height: 1;
+    }
 
- .schedule-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  margin: 6px 0;
-  padding: 10px 12px;
-  background: #ffffff;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-}
+    .schedule-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin: 6px 0;
+      padding: 10px 12px;
+      background: #ffffff;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+    }
 
-.schedule-row.active {
-  border: 2px solid #2563eb;
-  background: #eef4ff;
-}
+    .schedule-row.active {
+      border: 2px solid #2563eb;
+      background: #eef4ff;
+    }
 
     .schedule-text {
       flex: 1;
@@ -299,17 +303,17 @@ color: white;
       padding: 8px 12px;
       font-size: 13px;
       font-weight: bold;
-background: #6b7280;
-color: #ffffff;
+      background: #6b7280;
+      color: #ffffff;
       border: none;
       border-radius: 8px;
       cursor: pointer;
       flex-shrink: 0;
     }
 
-   .schedule-apply-btn:hover {
-  background: #4b5563;
-}
+    .schedule-apply-btn:hover {
+      background: #4b5563;
+    }
 
     .schedule-empty {
       font-size: 13px;
@@ -578,10 +582,17 @@ color: #ffffff;
       aircraftList.forEach(function(aircraft) {
         const items = schedules[aircraft] || [];
 
-    const title = document.createElement("div");
-title.className = "schedule-aircraft-title " + aircraft.toLowerCase();
-title.textContent = aircraft;
-box.appendChild(title);
+        const icon = aircraft === "ACJ" ? "🛩️" : "✈️";
+
+        const title = document.createElement("div");
+        title.className = "schedule-aircraft-title " + aircraft.toLowerCase();
+        title.innerHTML = `
+          <span class="aircraft-title-wrap">
+            <span class="aircraft-icon">${icon}</span>
+            <span>${aircraft}</span>
+          </span>
+        `;
+        box.appendChild(title);
 
         if (!items.length) {
           const empty = document.createElement("div");
@@ -595,7 +606,6 @@ box.appendChild(title);
           const row = document.createElement("div");
           row.className = "schedule-row";
 
-      
           const text = document.createElement("div");
           text.className = "schedule-text";
 
