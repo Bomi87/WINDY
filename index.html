@@ -71,12 +71,20 @@
       margin-top: 8px;
     }
 
-    button {
-      width: 35%;
-      display: block;
+    .button-row {
+      width: 70%;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
       margin: 22px auto 0 auto;
+    }
+
+    button {
+      width: 100%;
+      display: block;
+      margin: 0;
       padding: 13px;
-      font-size: 16px;
+      font-size: 15px;
       font-weight: bold;
       background: #2563eb;
       color: white;
@@ -97,7 +105,8 @@
     #localDate,
     .calendar-day,
     .calendar-header button,
-    #openBtn {
+    #openWebBtn,
+    #openAppBtn {
       touch-action: manipulation;
     }
 
@@ -212,13 +221,23 @@
       .field,
       .date-time-row,
       .date-time-help,
-      button {
+      .button-row {
         width: 100%;
       }
 
       .date-time-row {
         grid-template-columns: 1fr 1fr;
         gap: 10px;
+      }
+
+      .button-row {
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+
+      button {
+        font-size: 13px;
+        padding: 12px 6px;
       }
 
       input {
@@ -271,7 +290,10 @@
 
     <div class="small date-time-help">날짜는 입력창 클릭 후 선택 / 시간은 24시간 형식 ex) 23:40</div>
 
-    <button id="openBtn" onclick="generateWindyLink()">OPEN</button>
+    <div class="button-row">
+      <button id="openWebBtn" onclick="generateWindyLink('web')">OPEN WEB</button>
+      <button id="openAppBtn" onclick="generateWindyLink('app')">OPEN WINDY APP</button>
+    </div>
 
     <div id="error" class="error"></div>
     <div id="result" class="result"></div>
@@ -297,6 +319,29 @@
 
     function formatYmd(date) {
       return date.getFullYear() + "-" + pad2(date.getMonth() + 1) + "-" + pad2(date.getDate());
+    }
+
+    function setButtonsDisabled(disabled, webText, appText) {
+      const webBtn = document.getElementById("openWebBtn");
+      const appBtn = document.getElementById("openAppBtn");
+
+      webBtn.disabled = disabled;
+      appBtn.disabled = disabled;
+
+      webBtn.textContent = webText;
+      appBtn.textContent = appText;
+    }
+
+    function openWindyUrl(windyUrl, mode) {
+      if (mode === "app") {
+        /*
+          모바일에서 같은 창 이동을 시도.
+          OS/브라우저/Windy 앱 설치 상태에 따라 Windy 앱 또는 모바일 웹으로 열릴 수 있음.
+        */
+        window.location.href = windyUrl;
+      } else {
+        window.open(windyUrl, "_blank");
+      }
     }
 
     function openCalendar() {
@@ -377,11 +422,10 @@
       }
     }
 
-    async function generateWindyLink() {
+    async function generateWindyLink(mode) {
       const icaoInput = document.getElementById("icao");
       const dateInput = document.getElementById("localDate");
       const timeInput = document.getElementById("localTime");
-      const button = document.getElementById("openBtn");
       const errorBox = document.getElementById("error");
       const resultBox = document.getElementById("result");
 
@@ -423,8 +467,7 @@
         return;
       }
 
-      button.disabled = true;
-      button.textContent = "처리 중...";
+      setButtonsDisabled(true, "처리 중...", "처리 중...");
 
       try {
         const apiUrl =
@@ -453,13 +496,12 @@
           <a href="${data.windyUrl}" target="_blank">${data.windyUrl}</a>
         `;
 
-        window.open(data.windyUrl, "_blank");
+        openWindyUrl(data.windyUrl, mode);
 
       } catch (err) {
         errorBox.textContent = "Apps Script 연결 중 오류가 발생했습니다: " + err.message;
       } finally {
-        button.disabled = false;
-        button.textContent = "OPEN";
+        setButtonsDisabled(false, "OPEN WEB", "OPEN WINDY APP");
       }
     }
 
@@ -489,10 +531,10 @@
       if (event.key === "Enter") {
         event.preventDefault();
 
-        const button = document.getElementById("openBtn");
+        const webBtn = document.getElementById("openWebBtn");
 
-        if (!button.disabled) {
-          generateWindyLink();
+        if (!webBtn.disabled) {
+          generateWindyLink("web");
         }
       }
     });
