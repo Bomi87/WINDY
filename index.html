@@ -99,19 +99,8 @@
     .calendar-day,
     .calendar-header button,
     #openBtn,
-    .schedule-item {
+    .schedule-apply-btn {
       touch-action: manipulation;
-    }
-
-    .result {
-      margin-top: 22px;
-      padding: 14px;
-      background: #f3f4f6;
-      border-radius: 8px;
-      word-break: break-all;
-      font-size: 14px;
-      line-height: 1.7;
-      display: none;
     }
 
     .error {
@@ -202,6 +191,35 @@
       font-weight: bold;
     }
 
+    .selected-schedule-box {
+      width: 70%;
+      margin: 18px auto 0 auto;
+      padding: 14px;
+      background: #f3f4f6;
+      border-radius: 10px;
+      box-sizing: border-box;
+      min-height: 86px;
+    }
+
+    .selected-schedule-title {
+      font-weight: bold;
+      margin-bottom: 8px;
+      color: #111827;
+      font-size: 15px;
+    }
+
+    .selected-schedule-empty {
+      font-size: 13px;
+      color: #6b7280;
+      line-height: 1.6;
+    }
+
+    .selected-schedule-text {
+      font-size: 14px;
+      color: #111827;
+      line-height: 1.7;
+    }
+
     .schedule-box {
       width: 70%;
       margin: 22px auto 0 auto;
@@ -225,21 +243,50 @@
       font-size: 14px;
     }
 
-    .schedule-item {
-      width: 100%;
-      text-align: left;
+    .schedule-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
       margin: 6px 0;
-      padding: 10px;
+      padding: 10px 12px;
       background: #ffffff;
-      color: #111827;
       border: 1px solid #d1d5db;
       border-radius: 8px;
-      font-size: 13px;
-      cursor: pointer;
     }
 
-    .schedule-item:hover {
-      background: #e0e7ff;
+    .schedule-row.active {
+      border: 2px solid #2563eb;
+      background: #eef4ff;
+    }
+
+    .schedule-text {
+      flex: 1;
+      min-width: 0;
+      color: #111827;
+      font-size: 13px;
+      font-weight: bold;
+      line-height: 1.4;
+      word-break: break-word;
+    }
+
+    .schedule-apply-btn {
+      width: auto;
+      min-width: 64px;
+      margin: 0;
+      padding: 8px 12px;
+      font-size: 13px;
+      font-weight: bold;
+      background: #4f46e5;
+      color: #ffffff;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .schedule-apply-btn:hover {
+      background: #4338ca;
     }
 
     .schedule-empty {
@@ -260,6 +307,7 @@
       .field,
       .date-time-row,
       .date-time-help,
+      .selected-schedule-box,
       .schedule-box,
       button {
         width: 100%;
@@ -279,6 +327,21 @@
       .calendar-popup {
         width: calc(100% - 36px);
         left: 18px !important;
+      }
+
+      .schedule-row {
+        gap: 8px;
+        padding: 10px;
+      }
+
+      .schedule-text {
+        font-size: 12px;
+      }
+
+      .schedule-apply-btn {
+        min-width: 58px;
+        padding: 8px 10px;
+        font-size: 12px;
       }
     }
   </style>
@@ -324,7 +387,13 @@
     <button id="openBtn" onclick="generateWindyLink()">OPEN</button>
 
     <div id="error" class="error"></div>
-    <div id="result" class="result"></div>
+
+    <div id="selectedScheduleBox" class="selected-schedule-box">
+      <div class="selected-schedule-title">Selected Schedule</div>
+      <div id="selectedScheduleContent" class="selected-schedule-empty">
+        아직 선택된 스케줄이 없습니다.
+      </div>
+    </div>
 
     <div id="scheduleBox" class="schedule-box">
       <div class="schedule-title">Schedule</div>
@@ -474,31 +543,62 @@
         }
 
         items.forEach(function(item) {
-          const btn = document.createElement("button");
-          btn.type = "button";
-          btn.className = "schedule-item";
-          btn.textContent =
+          const row = document.createElement("div");
+          row.className = "schedule-row";
+
+          const text = document.createElement("div");
+          text.className = "schedule-text";
+          text.textContent =
             item.airport + " / " +
             item.type + " / " +
             item.localDate + " " +
             item.localTime;
 
-          btn.addEventListener("pointerdown", function(event) {
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "schedule-apply-btn";
+          btn.textContent = "선택";
+
+          btn.addEventListener("click", function(event) {
             event.preventDefault();
             event.stopPropagation();
-            applySchedule(item);
-          }, { passive: false });
+            applySchedule(item, row);
+          });
 
-          box.appendChild(btn);
+          row.appendChild(text);
+          row.appendChild(btn);
+          box.appendChild(row);
         });
       });
     }
 
-    function applySchedule(item) {
+    function applySchedule(item, selectedRow) {
       document.getElementById("icao").value = item.airport;
       document.getElementById("localDate").value = item.localDate;
       document.getElementById("localTime").value = item.localTime;
       document.getElementById("error").textContent = "";
+
+      updateSelectedScheduleDisplay(item);
+
+      document.querySelectorAll(".schedule-row").forEach(function(row) {
+        row.classList.remove("active");
+      });
+
+      if (selectedRow) {
+        selectedRow.classList.add("active");
+      }
+    }
+
+    function updateSelectedScheduleDisplay(item) {
+      const box = document.getElementById("selectedScheduleContent");
+
+      box.className = "selected-schedule-text";
+      box.innerHTML = `
+        <strong>Aircraft:</strong> ${item.aircraft}<br>
+        <strong>Airport:</strong> ${item.airport}<br>
+        <strong>Type:</strong> ${item.type}<br>
+        <strong>Local Time:</strong> ${item.localDate} ${item.localTime}
+      `;
     }
 
     async function generateWindyLink() {
@@ -507,11 +607,8 @@
       const timeInput = document.getElementById("localTime");
       const button = document.getElementById("openBtn");
       const errorBox = document.getElementById("error");
-      const resultBox = document.getElementById("result");
 
       errorBox.textContent = "";
-      resultBox.style.display = "none";
-      resultBox.innerHTML = "";
 
       const icao = icaoInput.value.trim().toUpperCase();
       const localDate = dateInput.value.trim();
@@ -564,18 +661,6 @@
           errorBox.textContent = data.message || "Windy 링크 생성에 실패했습니다.";
           return;
         }
-
-        resultBox.style.display = "block";
-        resultBox.innerHTML = `
-          <strong>Airport:</strong> ${data.icao}<br>
-          <strong>Latitude:</strong> ${data.lat}<br>
-          <strong>Longitude:</strong> ${data.lon}<br>
-          <strong>Timezone:</strong> ${data.timeZoneId || data.timezone || ""}<br>
-          <strong>Local Time:</strong> ${data.localDate} ${data.localTime}<br>
-          <strong>UTC:</strong> ${data.utc}Z<br>
-          <strong>Windy URL:</strong><br>
-          <a href="${data.windyUrl}" target="_blank">${data.windyUrl}</a>
-        `;
 
         window.open(data.windyUrl, "_blank");
 
