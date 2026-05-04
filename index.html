@@ -37,43 +37,62 @@
 
     input {
       width: 100%;
-      min-width: 0;
+      height: 52px;
       display: block;
-      height: 54px;
       padding: 12px;
       margin-top: 6px;
       font-size: 16px;
       border: 1px solid #d1d5db;
       border-radius: 8px;
       box-sizing: border-box;
-    }
-
-    input[type="date"] {
-      min-width: 0;
-      max-width: 100%;
-      height: 54px;
-      line-height: 54px;
-      padding: 12px;
-      -webkit-appearance: auto;
-      appearance: auto;
+      background: #ffffff;
     }
 
     .field {
       width: 70%;
-      min-width: 0;
     }
 
     .date-time-row {
       width: 70%;
       display: grid;
-      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      grid-template-columns: 1fr 1fr;
       gap: 14px;
       align-items: start;
     }
 
     .date-time-row .field {
       width: 100%;
-      min-width: 0;
+    }
+
+    .date-picker-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-top: 6px;
+    }
+
+    .calendar-icon-input {
+      width: 52px;
+      min-width: 52px;
+      height: 52px;
+      padding: 0;
+      margin-top: 0;
+      cursor: pointer;
+      color: transparent;
+      background: #ffffff;
+    }
+
+    .calendar-icon-input::-webkit-calendar-picker-indicator {
+      opacity: 1;
+      cursor: pointer;
+      width: 28px;
+      height: 28px;
+    }
+
+    .date-display-input {
+      flex: 1;
+      margin-top: 0;
+      background: #ffffff;
     }
 
     .date-time-help {
@@ -82,7 +101,7 @@
     }
 
     button {
-      width: 35%;
+      width: 70%;
       display: block;
       margin: 22px auto 0 auto;
       padding: 13px;
@@ -142,36 +161,33 @@
       }
 
       .field,
+      .date-time-row,
       .date-time-help,
       button {
         width: 100%;
       }
 
       .date-time-row {
-        width: 100%;
-        display: grid;
-        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        grid-template-columns: 1fr 1fr;
         gap: 10px;
       }
 
-      .date-time-row .field {
-        width: 100%;
-        min-width: 0;
-      }
-
       input {
+        height: 52px;
         font-size: 15px;
         padding: 11px;
-        height: 52px;
-        min-width: 0;
       }
 
-      input[type="date"] {
+      .calendar-icon-input {
+        width: 46px;
+        min-width: 46px;
         height: 52px;
-        line-height: 52px;
-        padding: 11px;
-        -webkit-appearance: auto;
-        appearance: auto;
+        padding: 0;
+      }
+
+      .calendar-icon-input::-webkit-calendar-picker-indicator {
+        width: 26px;
+        height: 26px;
       }
     }
   </style>
@@ -188,11 +204,23 @@
 
     <div class="date-time-row">
       <div class="field">
-        <label for="localDate">Local Date</label>
-        <input
-          id="localDate"
-          type="date"
-        />
+        <label for="calendarPicker">Local Date</label>
+
+        <div class="date-picker-row">
+          <input
+            id="calendarPicker"
+            class="calendar-icon-input"
+            type="date"
+          />
+
+          <input
+            id="localDate"
+            class="date-display-input"
+            type="text"
+            placeholder="YYYY-MM-DD"
+            readonly
+          />
+        </div>
       </div>
 
       <div class="field">
@@ -303,6 +331,10 @@
         button.textContent = "OPEN";
       }
     }
+
+    document.getElementById("calendarPicker").addEventListener("change", function () {
+      document.getElementById("localDate").value = this.value;
+    });
 
     document.getElementById("icao").addEventListener("input", function () {
       this.value = this.value.toUpperCase();
