@@ -48,6 +48,19 @@
       background: #ffffff;
     }
 
+    input[type="date"] {
+      height: 52px;
+      min-width: 0;
+      max-width: 100%;
+      padding: 12px;
+      font-size: 16px;
+      box-sizing: border-box;
+      background: #ffffff;
+      color: #111827;
+      -webkit-appearance: auto;
+      appearance: auto;
+    }
+
     .field {
       width: 70%;
     }
@@ -62,37 +75,6 @@
 
     .date-time-row .field {
       width: 100%;
-    }
-
-    .date-picker-row {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-      margin-top: 6px;
-    }
-
-    .calendar-icon-input {
-      width: 52px;
-      min-width: 52px;
-      height: 52px;
-      padding: 0;
-      margin-top: 0;
-      cursor: pointer;
-      color: transparent;
-      background: #ffffff;
-    }
-
-    .calendar-icon-input::-webkit-calendar-picker-indicator {
-      opacity: 1;
-      cursor: pointer;
-      width: 28px;
-      height: 28px;
-    }
-
-    .date-display-input {
-      flex: 1;
-      margin-top: 0;
-      background: #ffffff;
     }
 
     .date-time-help {
@@ -172,22 +154,11 @@
         gap: 10px;
       }
 
-      input {
+      input,
+      input[type="date"] {
         height: 52px;
         font-size: 15px;
         padding: 11px;
-      }
-
-      .calendar-icon-input {
-        width: 46px;
-        min-width: 46px;
-        height: 52px;
-        padding: 0;
-      }
-
-      .calendar-icon-input::-webkit-calendar-picker-indicator {
-        width: 26px;
-        height: 26px;
       }
     }
   </style>
@@ -204,23 +175,11 @@
 
     <div class="date-time-row">
       <div class="field">
-        <label for="calendarPicker">Local Date</label>
-
-        <div class="date-picker-row">
-          <input
-            id="calendarPicker"
-            class="calendar-icon-input"
-            type="date"
-          />
-
-          <input
-            id="localDate"
-            class="date-display-input"
-            type="text"
-            placeholder="YYYY-MM-DD"
-            readonly
-          />
-        </div>
+        <label for="localDate">Local Date</label>
+        <input
+          id="localDate"
+          type="date"
+        />
       </div>
 
       <div class="field">
@@ -331,10 +290,6 @@
         button.textContent = "OPEN";
       }
     }
-
-    document.getElementById("calendarPicker").addEventListener("change", function () {
-      document.getElementById("localDate").value = this.value;
-    });
 
     document.getElementById("icao").addEventListener("input", function () {
       this.value = this.value.toUpperCase();
