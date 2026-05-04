@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Windy Historical Link Generator</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f7fa;
+      margin: 0;
+      padding: 24px;
+    }
+
+    .container {
+      max-width: 560px;
+      margin: 0 auto;
+      background: #ffffff;
+      padding: 24px;
+      border-radius: 14px;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+    }
+
+    h2 {
+      margin-top: 0;
+      color: #1f2937;
+      font-size: 22px;
+    }
+
+    label {
+      display: block;
+      margin-top: 16px;
+      font-weight: bold;
+      color: #374151;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      margin-top: 6px;
+      font-size: 16px;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      box-sizing: border-box;
+    }
+
+    button {
+      width: 100%;
+      margin-top: 22px;
+      padding: 13px;
+      font-size: 16px;
+      font-weight: bold;
+      background: #2563eb;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #1d4ed8;
+    }
+
+    button:disabled {
+      background: #9ca3af;
+      cursor: not-allowed;
+    }
+
+    .result {
+      margin-top: 22px;
+      padding: 14px;
+      background: #f3f4f6;
+      border-radius: 8px;
+      word-break: break-all;
+      font-size: 14px;
+      line-height: 1.7;
+      display: none;
+    }
+
+    .error {
+      color: #dc2626;
+      font-weight: bold;
+      margin-top: 16px;
+    }
+
+    .small {
+      font-size: 13px;
+      color: #6b7280;
+      margin-top: 6px;
+    }
+
+    a {
+      color: #2563eb;
+      font-weight: bold;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h2>Windy Historical Link Generator</h2>
+
+    <label for="icao">Airport ICAO</label>
+    <input id="icao" type="text" placeholder="예: KPIT" maxlength="4" />
+
+    <label for="localDate">Local Date</label>
+    <input id="localDate" type="date" />
+
+    <label for="localTime">Local Time</label>
+    <input id="localTime" type="time" step="3600" />
+    <div class="small">입력 시간은 해당 공항의 Local Time 기준입니다.</div>
+
+    <button id="openBtn" onclick="generateWindyLink()">Windy 링크 생성 및 열기</button>
+
+    <div id="error" class="error"></div>
+    <div id="result" class="result"></div>
+  </div>
+
+  <script>
+    // 여기에 Apps Script Web App URL 붙여넣기
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/여기에_배포_URL/exec";
+
+    async function generateWindyLink() {
+      const icaoInput = document.getElementById("icao");
+      const dateInput = document.getElementById("localDate");
+      const timeInput = document.getElementById("localTime");
+      const button = document.getElementById("openBtn");
+      const errorBox = document.getElementById("error");
+      const resultBox = document.getElementById("result");
+
+      errorBox.textContent = "";
+      resultBox.style.display = "none";
+      resultBox.innerHTML = "";
+
+      const icao = icaoInput.value.trim().toUpperCase();
+      const localDate = dateInput.value;
+      const localTime = timeInput.value;
+
+      if (!icao) {
+        errorBox.textContent = "공항 ICAO를 입력하세요.";
+        return;
+      }
+
+      if (icao.length !== 4) {
+        errorBox.textContent = "ICAO 코드는 4자리로 입력하세요. 예: KPIT";
+        return;
+      }
+
+      if (!localDate) {
+        errorBox.textContent = "Local Date를 입력하세요.";
+        return;
+      }
+
+      if (!localTime) {
+        errorBox.textContent = "Local Time을 입력하세요.";
+        return;
+      }
+
+      button.disabled = true;
+      button.textContent = "처리 중...";
+
+      try {
+        const apiUrl =
+          APPS_SCRIPT_URL +
+          "?icao=" + encodeURIComponent(icao) +
+          "&localDate=" + encodeURIComponent(localDate) +
+          "&localTime=" + encodeURIComponent(localTime);
+
+        const response = await fetch(apiUrl);
+        const data = await response.json();
+
+        if (!data.success) {
+          errorBox.textContent = data.message || "Windy 링크 생성에 실패했습니다.";
+          return;
+        }
+
+        resultBox.style.display = "block";
+        resultBox.innerHTML = `
+          <strong>Airport:</strong> ${data.icao}<br>
+          <strong>Latitude:</strong> ${data.lat}<br>
+          <strong>Longitude:</strong> ${data.lon}<br>
+          <strong>Timezone:</strong> ${data.timezone}<br>
+          <strong>Local Time:</strong> ${data.localDate} ${data.localTime}<br>
+          <strong>UTC:</strong> ${data.utc}Z<br>
+          <strong>Windy URL:</strong><br>
+          <a href="${data.windyUrl}" target="_blank">${data.windyUrl}</a>
+        `;
+
+        window.open(data.windyUrl, "_blank");
+
+      } catch (err) {
+        errorBox.textContent = "Apps Script 연결 중 오류가 발생했습니다: " + err.message;
+      } finally {
+        button.disabled = false;
+        button.textContent = "Windy 링크 생성 및 열기";
+      }
+    }
+
+    document.getElementById("icao").addEventListener("input", function () {
+      this.value = this.value.toUpperCase();
+    });
+  </script>
+</body>
+</html>
