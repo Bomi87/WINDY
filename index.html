@@ -199,6 +199,7 @@
       border-radius: 10px;
       box-sizing: border-box;
       min-height: 86px;
+      display: none;
     }
 
     .selected-schedule-title {
@@ -206,12 +207,6 @@
       margin-bottom: 8px;
       color: #111827;
       font-size: 15px;
-    }
-
-    .selected-schedule-empty {
-      font-size: 13px;
-      color: #6b7280;
-      line-height: 1.6;
     }
 
     .selected-schedule-text {
@@ -253,10 +248,20 @@
       background: #ffffff;
       border: 1px solid #d1d5db;
       border-radius: 8px;
+      border-left: 6px solid #d1d5db;
+    }
+
+    .schedule-row.type-dep {
+      border-left-color: #2563eb;
+    }
+
+    .schedule-row.type-arr {
+      border-left-color: #16a34a;
     }
 
     .schedule-row.active {
       border: 2px solid #2563eb;
+      border-left-width: 6px;
       background: #eef4ff;
     }
 
@@ -268,6 +273,26 @@
       font-weight: bold;
       line-height: 1.4;
       word-break: break-word;
+    }
+
+    .schedule-type-badge {
+      display: inline-block;
+      min-width: 38px;
+      text-align: center;
+      padding: 3px 7px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: bold;
+      color: white;
+      margin-right: 6px;
+    }
+
+    .schedule-type-badge.dep {
+      background: #2563eb;
+    }
+
+    .schedule-type-badge.arr {
+      background: #16a34a;
     }
 
     .schedule-apply-btn {
@@ -351,48 +376,48 @@
   <div class="container">
     <h2>Windy airport weather check</h2>
 
-    <div class="field">
-      <label for="icao">Airport ICAO</label>
-      <input id="icao" type="text" placeholder="예: KPIT" maxlength="4" />
-    </div>
-
-    <div class="date-time-row">
+    <div id="inputSection">
       <div class="field">
-        <label for="localDate">Local Date</label>
-        <input
-          id="localDate"
-          type="text"
-          placeholder="YYYY-MM-DD"
-          maxlength="10"
-          inputmode="numeric"
-          readonly
-        />
+        <label for="icao">Airport ICAO</label>
+        <input id="icao" type="text" placeholder="예: KPIT" maxlength="4" />
       </div>
 
-      <div class="field">
-        <label for="localTime">Local Time</label>
-        <input
-          id="localTime"
-          type="tel"
-          placeholder="예: 23:40"
-          maxlength="5"
-          inputmode="numeric"
-          autocomplete="off"
-        />
+      <div class="date-time-row">
+        <div class="field">
+          <label for="localDate">Local Date</label>
+          <input
+            id="localDate"
+            type="text"
+            placeholder="YYYY-MM-DD"
+            maxlength="10"
+            inputmode="numeric"
+            readonly
+          />
+        </div>
+
+        <div class="field">
+          <label for="localTime">Local Time</label>
+          <input
+            id="localTime"
+            type="tel"
+            placeholder="예: 23:40"
+            maxlength="5"
+            inputmode="numeric"
+            autocomplete="off"
+          />
+        </div>
       </div>
+
+      <div class="small date-time-help">날짜는 입력창 클릭 후 선택 / 시간은 24시간 형식 ex) 23:40</div>
+
+      <button id="openBtn" onclick="generateWindyLink()">OPEN</button>
     </div>
-
-    <div class="small date-time-help">날짜는 입력창 클릭 후 선택 / 시간은 24시간 형식 ex) 23:40</div>
-
-    <button id="openBtn" onclick="generateWindyLink()">OPEN</button>
 
     <div id="error" class="error"></div>
 
     <div id="selectedScheduleBox" class="selected-schedule-box">
       <div class="selected-schedule-title">Selected Schedule</div>
-      <div id="selectedScheduleContent" class="selected-schedule-empty">
-        아직 선택된 스케줄이 없습니다.
-      </div>
+      <div id="selectedScheduleContent" class="selected-schedule-text"></div>
     </div>
 
     <div id="scheduleBox" class="schedule-box">
@@ -414,6 +439,7 @@
     const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzHhqPYVM5n9RlhrrRFCqGB8LMAD8XCDXrzQckiufNboKj1xkSOt02zPnEz5oGvv1bZTg/exec";
 
     let currentCalendarDate = new Date();
+    let suppressSelectionClear = false;
 
     function pad2(n) {
       return String(n).padStart(2, "0");
@@ -421,6 +447,31 @@
 
     function formatYmd(date) {
       return date.getFullYear() + "-" + pad2(date.getMonth() + 1) + "-" + pad2(date.getDate());
+    }
+
+    function clearSelectedSchedule() {
+      if (suppressSelectionClear) return;
+
+      const selectedBox = document.getElementById("selectedScheduleBox");
+      const selectedContent = document.getElementById("selectedScheduleContent");
+
+      selectedBox.style.display = "none";
+      selectedContent.innerHTML = "";
+
+      document.querySelectorAll(".schedule-row").forEach(function(row) {
+        row.classList.remove("active");
+      });
+    }
+
+    function scrollToInputSection() {
+      const target = document.getElementById("inputSection");
+
+      if (target) {
+        target.scrollIntoView({
+          behavior: "smooth",
+          block: "start"
+        });
+      }
     }
 
     function openCalendar() {
@@ -495,6 +546,7 @@
 
           document.getElementById("localDate").value = ymd;
           closeCalendar();
+          clearSelectedSchedule();
         }, { passive: false });
 
         grid.appendChild(div);
@@ -546,13 +598,27 @@
           const row = document.createElement("div");
           row.className = "schedule-row";
 
+          if (item.type === "DEP") {
+            row.classList.add("type-dep");
+          } else if (item.type === "ARR") {
+            row.classList.add("type-arr");
+          }
+
           const text = document.createElement("div");
           text.className = "schedule-text";
-          text.textContent =
+
+          const badge = document.createElement("span");
+          badge.className = "schedule-type-badge " + item.type.toLowerCase();
+          badge.textContent = item.type;
+
+          const labelText = document.createElement("span");
+          labelText.textContent =
             item.airport + " / " +
-            item.type + " / " +
             item.localDate + " " +
             item.localTime;
+
+          text.appendChild(badge);
+          text.appendChild(labelText);
 
           const btn = document.createElement("button");
           btn.type = "button";
@@ -573,10 +639,14 @@
     }
 
     function applySchedule(item, selectedRow) {
+      suppressSelectionClear = true;
+
       document.getElementById("icao").value = item.airport;
       document.getElementById("localDate").value = item.localDate;
       document.getElementById("localTime").value = item.localTime;
       document.getElementById("error").textContent = "";
+
+      suppressSelectionClear = false;
 
       updateSelectedScheduleDisplay(item);
 
@@ -587,12 +657,16 @@
       if (selectedRow) {
         selectedRow.classList.add("active");
       }
+
+      setTimeout(scrollToInputSection, 80);
     }
 
     function updateSelectedScheduleDisplay(item) {
+      const selectedBox = document.getElementById("selectedScheduleBox");
       const box = document.getElementById("selectedScheduleContent");
 
-      box.className = "selected-schedule-text";
+      selectedBox.style.display = "block";
+
       box.innerHTML = `
         <strong>Aircraft:</strong> ${item.aircraft}<br>
         <strong>Airport:</strong> ${item.airport}<br>
@@ -682,6 +756,7 @@
 
     document.getElementById("icao").addEventListener("input", function () {
       this.value = this.value.toUpperCase();
+      clearSelectedSchedule();
     });
 
     document.getElementById("localTime").addEventListener("input", function () {
@@ -692,6 +767,7 @@
       }
 
       this.value = v.slice(0, 5);
+      clearSelectedSchedule();
     });
 
     document.addEventListener("keydown", function (event) {
