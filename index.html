@@ -71,12 +71,20 @@
       margin-top: 8px;
     }
 
+    .button-row {
+      width: 70%;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin: 22px auto 0 auto;
+    }
+
     button {
       width: 35%;
       display: block;
-      margin: 22px auto 0 auto;
+      margin: 0;
       padding: 13px;
-      font-size: 16px;
+      font-size: 15px;
       font-weight: bold;
       background: #2563eb;
       color: white;
@@ -94,14 +102,58 @@
       cursor: not-allowed;
     }
 
-#localDate,
-#localTime,
-.calendar-day,
-.calendar-header button,
-#openWebBtn,
-#openAppBtn {
-  touch-action: manipulation;
-}
+    #localDate,
+    #localTime,
+    .calendar-day,
+    .calendar-header button,
+    #openWebBtn,
+    #openAppBtn {
+      touch-action: manipulation;
+    }
+
+    .schedule-box {
+      width: 70%;
+      margin: 22px auto 0 auto;
+      padding: 14px;
+      background: #f3f4f6;
+      border-radius: 10px;
+      box-sizing: border-box;
+    }
+
+    .schedule-title {
+      font-weight: bold;
+      margin-bottom: 10px;
+      color: #111827;
+    }
+
+    .schedule-aircraft-title {
+      font-weight: bold;
+      margin: 12px 0 6px 0;
+      color: #2563eb;
+    }
+
+    .schedule-item {
+      width: 100%;
+      text-align: left;
+      margin: 6px 0;
+      padding: 10px;
+      background: #ffffff;
+      color: #111827;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    .schedule-item:hover {
+      background: #e0e7ff;
+    }
+
+    .schedule-empty {
+      font-size: 13px;
+      color: #6b7280;
+      padding: 4px 0;
+    }
 
     .result {
       margin-top: 22px;
@@ -214,13 +266,24 @@
       .field,
       .date-time-row,
       .date-time-help,
-      button {
+      .button-row,
+      .schedule-box {
         width: 100%;
       }
 
       .date-time-row {
         grid-template-columns: 1fr 1fr;
         gap: 10px;
+      }
+
+      .button-row {
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+
+      button {
+        font-size: 13px;
+        padding: 12px 6px;
       }
 
       input {
@@ -261,22 +324,31 @@
 
       <div class="field">
         <label for="localTime">Local Time</label>
-       <input
-  id="localTime"
-  type="tel"
-  placeholder="예: 23:40"
-  maxlength="5"
-  inputmode="numeric"
-  autocomplete="off"
-/>
+        <input
+          id="localTime"
+          type="tel"
+          placeholder="예: 23:40"
+          maxlength="5"
+          inputmode="numeric"
+          autocomplete="off"
+        />
       </div>
     </div>
 
     <div class="small date-time-help">날짜는 입력창 클릭 후 선택 / 시간은 24시간 형식 ex) 23:40</div>
 
-    <button id="openBtn" onclick="generateWindyLink()">OPEN</button>
+    <div class="button-row">
+      <button id="openWebBtn" onclick="generateWindyLink('web')">OPEN WEB</button>
+      <button id="openAppBtn" onclick="generateWindyLink('app')">OPEN WINDY APP</button>
+    </div>
 
     <div id="error" class="error"></div>
+
+    <div id="scheduleBox" class="schedule-box">
+      <div class="schedule-title">Schedule</div>
+      <div id="scheduleContent" class="schedule-content">스케줄 불러오는 중...</div>
+    </div>
+
     <div id="result" class="result"></div>
 
     <div id="calendarPopup" class="calendar-popup">
@@ -290,7 +362,7 @@
   </div>
 
   <script>
-    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxlNZ3NH_aMp9wq56gLxWKNLLjeWPs9WOXstOFcWHL0KYj59afx2EltwOyFiFlSxGucWQ/exec";
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxNGP-9Rxs-STjRrMRQqPO1k8FLw6dVC5uiTw8RYT3yXjUJLyvb-TpAUP1GnwNNexvuWw/exec";
 
     let currentCalendarDate = new Date();
 
@@ -300,6 +372,25 @@
 
     function formatYmd(date) {
       return date.getFullYear() + "-" + pad2(date.getMonth() + 1) + "-" + pad2(date.getDate());
+    }
+
+    function setButtonsDisabled(disabled, webText, appText) {
+      const webBtn = document.getElementById("openWebBtn");
+      const appBtn = document.getElementById("openAppBtn");
+
+      webBtn.disabled = disabled;
+      appBtn.disabled = disabled;
+
+      webBtn.textContent = webText;
+      appBtn.textContent = appText;
+    }
+
+    function openWindyUrl(windyUrl, mode) {
+      if (mode === "app") {
+        window.location.href = windyUrl;
+      } else {
+        window.open(windyUrl, "_blank");
+      }
     }
 
     function openCalendar() {
@@ -380,11 +471,78 @@
       }
     }
 
-    async function generateWindyLink() {
+    async function loadSchedules() {
+      const box = document.getElementById("scheduleContent");
+
+      try {
+        const response = await fetch(APPS_SCRIPT_URL + "?action=schedules");
+        const data = await response.json();
+
+        if (!data.success) {
+          box.innerHTML = `<div class="schedule-empty">스케줄을 불러오지 못했습니다.</div>`;
+          return;
+        }
+
+        renderSchedules(data.schedules);
+
+      } catch (err) {
+        box.innerHTML = `<div class="schedule-empty">스케줄 연결 오류: ${err.message}</div>`;
+      }
+    }
+
+    function renderSchedules(schedules) {
+      const box = document.getElementById("scheduleContent");
+      box.innerHTML = "";
+
+      const aircraftList = ["ACJ", "G650"];
+
+      aircraftList.forEach(function(aircraft) {
+        const items = schedules[aircraft] || [];
+
+        const title = document.createElement("div");
+        title.className = "schedule-aircraft-title";
+        title.textContent = aircraft;
+        box.appendChild(title);
+
+        if (!items.length) {
+          const empty = document.createElement("div");
+          empty.className = "schedule-empty";
+          empty.textContent = "스케줄 없음";
+          box.appendChild(empty);
+          return;
+        }
+
+        items.forEach(function(item) {
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "schedule-item";
+          btn.textContent =
+            item.airport + " / " +
+            item.type + " / " +
+            item.localDate + " " +
+            item.localTime;
+
+          btn.addEventListener("pointerdown", function(event) {
+            event.preventDefault();
+            applySchedule(item);
+          }, { passive: false });
+
+          box.appendChild(btn);
+        });
+      });
+    }
+
+    function applySchedule(item) {
+      document.getElementById("icao").value = item.airport;
+      document.getElementById("localDate").value = item.localDate;
+      document.getElementById("localTime").value = item.localTime;
+      document.getElementById("error").textContent = "";
+    }
+
+    async function generateWindyLink(mode) {
       const icaoInput = document.getElementById("icao");
       const dateInput = document.getElementById("localDate");
       const timeInput = document.getElementById("localTime");
-      const button = document.getElementById("openBtn");
       const errorBox = document.getElementById("error");
       const resultBox = document.getElementById("result");
 
@@ -426,8 +584,7 @@
         return;
       }
 
-      button.disabled = true;
-      button.textContent = "처리 중...";
+      setButtonsDisabled(true, "처리 중...", "처리 중...");
 
       try {
         const apiUrl =
@@ -456,13 +613,12 @@
           <a href="${data.windyUrl}" target="_blank">${data.windyUrl}</a>
         `;
 
-        window.open(data.windyUrl, "_blank");
+        openWindyUrl(data.windyUrl, mode);
 
       } catch (err) {
         errorBox.textContent = "Apps Script 연결 중 오류가 발생했습니다: " + err.message;
       } finally {
-        button.disabled = false;
-        button.textContent = "OPEN";
+        setButtonsDisabled(false, "OPEN WEB", "OPEN WINDY APP");
       }
     }
 
@@ -492,10 +648,10 @@
       if (event.key === "Enter") {
         event.preventDefault();
 
-        const button = document.getElementById("openBtn");
+        const webBtn = document.getElementById("openWebBtn");
 
-        if (!button.disabled) {
-          generateWindyLink();
+        if (!webBtn.disabled) {
+          generateWindyLink("web");
         }
       }
     });
@@ -512,6 +668,8 @@
         closeCalendar();
       }
     });
+
+    loadSchedules();
   </script>
 </body>
 </html>
