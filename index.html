@@ -63,46 +63,6 @@
       width: 50%;
     }
 
-    .date-input-wrap {
-      display: flex;
-      gap: 6px;
-      align-items: center;
-      margin-top: 6px;
-    }
-
-    .date-input-wrap input[type="text"] {
-      margin-top: 0;
-      flex: 1;
-    }
-
-    .calendar-btn {
-      width: 44px;
-      min-width: 44px;
-      height: 44px;
-      margin: 0;
-      padding: 0;
-      border-radius: 8px;
-      background: #eef2ff;
-      color: #1f2937;
-      border: 1px solid #d1d5db;
-      font-size: 20px;
-      cursor: pointer;
-    }
-
-    .calendar-btn:hover {
-      background: #e0e7ff;
-    }
-
-    /* 모바일에서 달력 picker가 열리도록 pointer-events:none 제거 */
-    .hidden-date {
-      position: fixed;
-      left: -1000px;
-      top: 0;
-      width: 40px;
-      height: 40px;
-      opacity: 0;
-    }
-
     .date-time-help {
       width: 70%;
       margin-top: 8px;
@@ -188,13 +148,6 @@
         font-size: 15px;
         padding: 11px;
       }
-
-      .calendar-btn {
-        width: 40px;
-        min-width: 40px;
-        height: 40px;
-        font-size: 18px;
-      }
     }
   </style>
 </head>
@@ -211,31 +164,10 @@
     <div class="date-time-row">
       <div class="field">
         <label for="localDate">Local Date</label>
-
-        <div class="date-input-wrap">
-          <input
-            id="localDate"
-            type="text"
-            placeholder="YYYY-MM-DD"
-            maxlength="10"
-            inputmode="numeric"
-          />
-
-          <button
-            type="button"
-            class="calendar-btn"
-            onclick="openCalendar()"
-            title="날짜 선택"
-          >
-            📅
-          </button>
-
-          <input
-            id="calendarPicker"
-            class="hidden-date"
-            type="date"
-          />
-        </div>
+        <input
+          id="localDate"
+          type="date"
+        />
       </div>
 
       <div class="field">
@@ -250,7 +182,7 @@
       </div>
     </div>
 
-    <div class="small date-time-help">24시간 형식. ex) 20260508 / 23:40</div>
+    <div class="small date-time-help">날짜는 달력 선택 / 시간은 24시간 형식 ex) 23:40</div>
 
     <button id="openBtn" onclick="generateWindyLink()">OPEN</button>
 
@@ -288,12 +220,12 @@
       }
 
       if (!localDate) {
-        errorBox.textContent = "Local Date를 입력하세요.";
+        errorBox.textContent = "Local Date를 선택하세요.";
         return;
       }
 
       if (!/^\d{4}-\d{2}-\d{2}$/.test(localDate)) {
-        errorBox.textContent = "Local Date는 YYYY-MM-DD 형식으로 입력하세요. 예: 2026-05-08";
+        errorBox.textContent = "Local Date 형식이 올바르지 않습니다.";
         return;
       }
 
@@ -347,42 +279,8 @@
       }
     }
 
-    function openCalendar() {
-      const picker = document.getElementById("calendarPicker");
-
-      try {
-        picker.focus();
-
-        if (typeof picker.showPicker === "function") {
-          picker.showPicker();
-        } else {
-          picker.click();
-        }
-      } catch (e) {
-        picker.click();
-      }
-    }
-
-    document.getElementById("calendarPicker").addEventListener("change", function () {
-      if (this.value) {
-        document.getElementById("localDate").value = this.value;
-      }
-    });
-
     document.getElementById("icao").addEventListener("input", function () {
       this.value = this.value.toUpperCase();
-    });
-
-    document.getElementById("localDate").addEventListener("input", function () {
-      let v = this.value.replace(/[^0-9]/g, "");
-
-      if (v.length >= 5 && v.length <= 6) {
-        v = v.slice(0, 4) + "-" + v.slice(4);
-      } else if (v.length >= 7) {
-        v = v.slice(0, 4) + "-" + v.slice(4, 6) + "-" + v.slice(6, 8);
-      }
-
-      this.value = v.slice(0, 10);
     });
 
     document.getElementById("localTime").addEventListener("input", function () {
@@ -393,6 +291,18 @@
       }
 
       this.value = v.slice(0, 5);
+    });
+
+    document.addEventListener("keydown", function (event) {
+      if (event.key === "Enter") {
+        event.preventDefault();
+
+        const button = document.getElementById("openBtn");
+
+        if (!button.disabled) {
+          generateWindyLink();
+        }
+      }
     });
   </script>
 </body>
