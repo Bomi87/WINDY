@@ -94,12 +94,14 @@
       cursor: not-allowed;
     }
 
-    #localDate,
-    .calendar-day,
-    .calendar-header button,
-    #openBtn {
-      touch-action: manipulation;
-    }
+#localDate,
+#localTime,
+.calendar-day,
+.calendar-header button,
+#openWebBtn,
+#openAppBtn {
+  touch-action: manipulation;
+}
 
     .result {
       margin-top: 22px;
@@ -259,13 +261,14 @@
 
       <div class="field">
         <label for="localTime">Local Time</label>
-        <input
-          id="localTime"
-          type="text"
-          placeholder="예: 23:40"
-          maxlength="5"
-          inputmode="numeric"
-        />
+       <input
+  id="localTime"
+  type="tel"
+  placeholder="예: 23:40"
+  maxlength="5"
+  inputmode="numeric"
+  autocomplete="off"
+/>
       </div>
     </div>
 
