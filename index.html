@@ -450,7 +450,12 @@
       }
     }
 
-    document.getElementById("localDate").addEventListener("click", openCalendar);
+    const localDateInput = document.getElementById("localDate");
+
+    localDateInput.addEventListener("pointerdown", function (event) {
+      event.preventDefault();
+      openCalendar();
+    });
 
     document.getElementById("icao").addEventListener("input", function () {
       this.value = this.value.toUpperCase();
@@ -478,7 +483,7 @@
       }
     });
 
-    document.addEventListener("click", function (event) {
+    document.addEventListener("pointerdown", function (event) {
       const popup = document.getElementById("calendarPopup");
       const dateInput = document.getElementById("localDate");
 
