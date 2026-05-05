@@ -28,6 +28,27 @@
       color: #1f2937;
       font-size: 22px;
     }
+    .app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.app-header h2 {
+  margin: 0;
+  color: #1f2937;
+  font-size: 22px;
+}
+
+.windy-logo {
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+  border-radius: 10px;
+  flex-shrink: 0;
+}
 
     label {
       display: block;
@@ -375,7 +396,14 @@
 
 <body>
   <div class="container">
-    <h2>Windy airport weather check</h2>
+    <div class="app-header">
+  <h2>Windy airport weather check</h2>
+  <img
+    src="windy-icon.png"
+    alt="Windy logo"
+    class="windy-logo"
+  />
+</div>
 
     <div id="inputSection">
       <div class="field">
