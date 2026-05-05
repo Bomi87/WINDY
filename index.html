@@ -28,27 +28,28 @@
       color: #1f2937;
       font-size: 22px;
     }
+
     .app-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 8px;
-}
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
 
-.app-header h2 {
-  margin: 0;
-  color: #1f2937;
-  font-size: 22px;
-}
+    .app-header h2 {
+      margin: 0;
+      color: #1f2937;
+      font-size: 22px;
+    }
 
-.windy-logo {
-  width: 44px;
-  height: 44px;
-  object-fit: contain;
-  border-radius: 10px;
-  flex-shrink: 0;
-}
+    .windy-logo {
+      width: 44px;
+      height: 44px;
+      object-fit: contain;
+      border-radius: 10px;
+      flex-shrink: 0;
+    }
 
     label {
       display: block;
@@ -395,72 +396,89 @@
 </head>
 
 <body>
-  <div class="container">
-    <div class="app-header">
-  <h2>Windy airport weather check</h2>
-  <img
-    src="windy-icon.png"
-    alt="Windy logo"
-    class="windy-logo"
-  />
-</div>
+  <div id="authScreen" style="
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:24px;
+    background:#f4f7fb;
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Noto Sans KR',Arial,sans-serif;
+    color:#1f2937;
+    font-size:15px;
+    font-weight:700;
+  ">
+    승인 확인 중...
+  </div>
 
-    <div id="inputSection">
-      <div class="field">
-        <label for="icao">Airport ICAO</label>
-        <input id="icao" type="text" placeholder="예: KPIT" maxlength="4" />
+  <div id="appRoot" style="display:none;">
+    <div class="container">
+      <div class="app-header">
+        <h2>Windy airport weather check</h2>
+        <img
+          src="windy-icon.png"
+          alt="Windy logo"
+          class="windy-logo"
+        />
       </div>
 
-      <div class="date-time-row">
+      <div id="inputSection">
         <div class="field">
-          <label for="localDate">Local Date</label>
-          <input
-            id="localDate"
-            type="text"
-            placeholder="YYYY-MM-DD"
-            maxlength="10"
-            inputmode="numeric"
-            readonly
-          />
+          <label for="icao">Airport ICAO</label>
+          <input id="icao" type="text" placeholder="예: KPIT" maxlength="4" />
         </div>
 
-        <div class="field">
-          <label for="localTime">Local Time</label>
-          <input
-            id="localTime"
-            type="tel"
-            placeholder="예: 23:40"
-            maxlength="5"
-            inputmode="numeric"
-            autocomplete="off"
-          />
+        <div class="date-time-row">
+          <div class="field">
+            <label for="localDate">Local Date</label>
+            <input
+              id="localDate"
+              type="text"
+              placeholder="YYYY-MM-DD"
+              maxlength="10"
+              inputmode="numeric"
+              readonly
+            />
+          </div>
+
+          <div class="field">
+            <label for="localTime">Local Time</label>
+            <input
+              id="localTime"
+              type="tel"
+              placeholder="예: 23:40"
+              maxlength="5"
+              inputmode="numeric"
+              autocomplete="off"
+            />
+          </div>
         </div>
+
+        <div class="small date-time-help">날짜는 입력창 클릭 후 선택 / 시간은 24시간 형식 ex) 23:40</div>
+
+        <button id="openBtn" onclick="generateWindyLink()">OPEN</button>
       </div>
 
-      <div class="small date-time-help">날짜는 입력창 클릭 후 선택 / 시간은 24시간 형식 ex) 23:40</div>
+      <div id="error" class="error"></div>
 
-      <button id="openBtn" onclick="generateWindyLink()">OPEN</button>
-    </div>
-
-    <div id="error" class="error"></div>
-
-    <div id="selectedScheduleBox" class="selected-schedule-box">
-      <div class="selected-schedule-title">Selected Schedule</div>
-      <div id="selectedScheduleContent" class="selected-schedule-text"></div>
-    </div>
-
-    <div id="scheduleBox" class="schedule-box">
-      <div class="schedule-title">Schedule</div>
-      <div id="scheduleContent" class="schedule-content">스케줄 불러오는 중...</div>
-    </div>
-
-    <div id="calendarPopup" class="calendar-popup">
-      <div class="calendar-header">
-        <button type="button" onclick="changeMonth(-1)">‹</button>
-        <span id="calendarTitle"></span>
-        <button type="button" onclick="changeMonth(1)">›</button>
+      <div id="selectedScheduleBox" class="selected-schedule-box">
+        <div class="selected-schedule-title">Selected Schedule</div>
+        <div id="selectedScheduleContent" class="selected-schedule-text"></div>
       </div>
-      <div id="calendarGrid" class="calendar-grid"></div>
+
+      <div id="scheduleBox" class="schedule-box">
+        <div class="schedule-title">Schedule</div>
+        <div id="scheduleContent" class="schedule-content">스케줄 불러오는 중...</div>
+      </div>
+
+      <div id="calendarPopup" class="calendar-popup">
+        <div class="calendar-header">
+          <button type="button" onclick="changeMonth(-1)">‹</button>
+          <span id="calendarTitle"></span>
+          <button type="button" onclick="changeMonth(1)">›</button>
+        </div>
+        <div id="calendarGrid" class="calendar-grid"></div>
+      </div>
     </div>
   </div>
 
@@ -469,6 +487,7 @@
 
     let currentCalendarDate = new Date();
     let suppressSelectionClear = false;
+    let WINDY_APP_STARTED = false;
 
     function pad2(n) {
       return String(n).padStart(2, "0");
@@ -706,6 +725,8 @@
     }
 
     async function generateWindyLink() {
+      if (!WINDY_APP_STARTED) return;
+
       const icaoInput = document.getElementById("icao");
       const dateInput = document.getElementById("localDate");
       const timeInput = document.getElementById("localTime");
@@ -748,9 +769,9 @@
         return;
       }
 
-     button.disabled = true;
-button.textContent = "Opening Windy...";
-document.body.style.cursor = "wait";
+      button.disabled = true;
+      button.textContent = "Opening Windy...";
+      document.body.style.cursor = "wait";
 
       try {
         const apiUrl =
@@ -767,67 +788,96 @@ document.body.style.cursor = "wait";
           return;
         }
 
-      window.location.href = data.windyUrl;
+        window.location.href = data.windyUrl;
 
       } catch (err) {
         errorBox.textContent = "Apps Script 연결 중 오류가 발생했습니다: " + err.message;
       } finally {
-       button.disabled = false;
-button.textContent = "OPEN";
-document.body.style.cursor = "default";
+        button.disabled = false;
+        button.textContent = "OPEN";
+        document.body.style.cursor = "default";
       }
     }
 
-    const localDateInput = document.getElementById("localDate");
+    function bindAppEvents() {
+      const localDateInput = document.getElementById("localDate");
 
-    localDateInput.addEventListener("pointerdown", function (event) {
-      event.preventDefault();
-      event.stopPropagation();
-      openCalendar();
-    }, { passive: false });
-
-    document.getElementById("icao").addEventListener("input", function () {
-      this.value = this.value.toUpperCase();
-      clearSelectedSchedule();
-    });
-
-    document.getElementById("localTime").addEventListener("input", function () {
-      let v = this.value.replace(/[^0-9]/g, "");
-
-      if (v.length >= 3) {
-        v = v.slice(0, 2) + ":" + v.slice(2, 4);
-      }
-
-      this.value = v.slice(0, 5);
-      clearSelectedSchedule();
-    });
-
-    document.addEventListener("keydown", function (event) {
-      if (event.key === "Enter") {
+      localDateInput.addEventListener("pointerdown", function (event) {
         event.preventDefault();
+        event.stopPropagation();
+        openCalendar();
+      }, { passive: false });
 
-        const button = document.getElementById("openBtn");
+      document.getElementById("icao").addEventListener("input", function () {
+        this.value = this.value.toUpperCase();
+        clearSelectedSchedule();
+      });
 
-        if (!button.disabled) {
-          generateWindyLink();
+      document.getElementById("localTime").addEventListener("input", function () {
+        let v = this.value.replace(/[^0-9]/g, "");
+
+        if (v.length >= 3) {
+          v = v.slice(0, 2) + ":" + v.slice(2, 4);
         }
+
+        this.value = v.slice(0, 5);
+        clearSelectedSchedule();
+      });
+
+      document.addEventListener("keydown", function (event) {
+        if (event.key === "Enter") {
+          event.preventDefault();
+
+          const button = document.getElementById("openBtn");
+
+          if (button && !button.disabled) {
+            generateWindyLink();
+          }
+        }
+      });
+
+      document.addEventListener("pointerdown", function (event) {
+        const popup = document.getElementById("calendarPopup");
+        const dateInput = document.getElementById("localDate");
+
+        if (
+          popup.style.display === "block" &&
+          !popup.contains(event.target) &&
+          event.target !== dateInput
+        ) {
+          closeCalendar();
+        }
+      });
+    }
+
+    function showAuthorizedApp() {
+      const authScreen = document.getElementById("authScreen");
+      const appRoot = document.getElementById("appRoot");
+
+      if (authScreen) authScreen.style.display = "none";
+      if (appRoot) appRoot.style.display = "block";
+    }
+
+    function startWindyAppAfterAuth() {
+      if (WINDY_APP_STARTED) return;
+
+      WINDY_APP_STARTED = true;
+      showAuthorizedApp();
+      bindAppEvents();
+      loadSchedules();
+    }
+
+    (function waitForPortalAuth() {
+      if (window.CURRENT_PORTAL_USER) {
+        startWindyAppAfterAuth();
+        return;
       }
-    });
 
-    document.addEventListener("pointerdown", function (event) {
-      const popup = document.getElementById("calendarPopup");
-      const dateInput = document.getElementById("localDate");
-
-      if (
-        popup.style.display === "block" &&
-        !popup.contains(event.target) &&
-        event.target !== dateInput
-      ) {
-        closeCalendar();
-      }
-    });
-
-    loadSchedules();
+      setTimeout(waitForPortalAuth, 200);
+    })();
   </script>
+
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script src="https://bomi87.github.io/SK-Aviation-portal/common-auth.js"></script>
 </body>
 </html>
