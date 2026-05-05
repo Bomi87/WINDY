@@ -748,8 +748,9 @@
         return;
       }
 
-      button.disabled = true;
-      button.textContent = "처리 중...";
+     button.disabled = true;
+button.textContent = "Opening Windy...";
+document.body.style.cursor = "wait";
 
       try {
         const apiUrl =
@@ -771,8 +772,9 @@
       } catch (err) {
         errorBox.textContent = "Apps Script 연결 중 오류가 발생했습니다: " + err.message;
       } finally {
-        button.disabled = false;
-        button.textContent = "OPEN";
+       button.disabled = false;
+button.textContent = "OPEN";
+document.body.style.cursor = "default";
       }
     }
 
