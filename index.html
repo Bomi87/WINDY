@@ -766,7 +766,7 @@
           return;
         }
 
-        window.open(data.windyUrl, "_blank");
+      window.location.href = data.windyUrl;
 
       } catch (err) {
         errorBox.textContent = "Apps Script 연결 중 오류가 발생했습니다: " + err.message;
