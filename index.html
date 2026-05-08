@@ -213,30 +213,6 @@
       font-weight: bold;
     }
 
-    .selected-schedule-box {
-      width: 70%;
-      margin: 18px auto 0 auto;
-      padding: 14px;
-      background: #f3f4f6;
-      border-radius: 10px;
-      box-sizing: border-box;
-      min-height: 86px;
-      display: none;
-    }
-
-    .selected-schedule-title {
-      font-weight: bold;
-      margin-bottom: 8px;
-      color: #111827;
-      font-size: 15px;
-    }
-
-    .selected-schedule-text {
-      font-size: 14px;
-      color: #111827;
-      line-height: 1.7;
-    }
-
     .schedule-box {
       width: 70%;
       margin: 22px auto 0 auto;
@@ -275,9 +251,9 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 10px;
+      gap: 7px;
       margin: 6px 0;
-      padding: 10px 12px;
+      padding: 10px 7px 10px 10px;
       background: #ffffff;
       border: 1px solid #d1d5db;
       border-radius: 8px;
@@ -292,22 +268,25 @@
       flex: 1;
       min-width: 0;
       color: #111827;
-      font-size: 13px;
+      font-size: 11.5px;
       font-weight: bold;
-      line-height: 1.4;
-      word-break: break-word;
+      line-height: 1.35;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .schedule-type-badge {
       display: inline-block;
-      min-width: 38px;
+      min-width: 32px;
       text-align: center;
-      padding: 3px 7px;
+      padding: 3px 5px;
       border-radius: 999px;
-      font-size: 11px;
+      font-size: 10px;
       font-weight: bold;
       color: white;
-      margin-right: 6px;
+      margin-right: 4px;
+      vertical-align: middle;
     }
 
     .schedule-type-badge.dep {
@@ -320,10 +299,10 @@
 
     .schedule-apply-btn {
       width: auto;
-      min-width: 64px;
+      min-width: 42px;
       margin: 0;
-      padding: 8px 12px;
-      font-size: 13px;
+      padding: 7px 7px;
+      font-size: 11px;
       font-weight: bold;
       background: #6b7280;
       color: #ffffff;
@@ -355,7 +334,6 @@
       .field,
       .date-time-row,
       .date-time-help,
-      .selected-schedule-box,
       .schedule-box,
       button {
         width: 100%;
@@ -378,18 +356,25 @@
       }
 
       .schedule-row {
-        gap: 8px;
-        padding: 10px;
+        gap: 5px;
+        padding: 9px 6px 9px 8px;
       }
 
       .schedule-text {
-        font-size: 12px;
+        font-size: 10.7px;
+      }
+
+      .schedule-type-badge {
+        min-width: 30px;
+        padding: 3px 4px;
+        font-size: 9.5px;
+        margin-right: 3px;
       }
 
       .schedule-apply-btn {
-        min-width: 58px;
-        padding: 8px 10px;
-        font-size: 12px;
+        min-width: 38px;
+        padding: 7px 6px;
+        font-size: 10.5px;
       }
     }
   </style>
@@ -461,11 +446,6 @@
 
       <div id="error" class="error"></div>
 
-      <div id="selectedScheduleBox" class="selected-schedule-box">
-        <div class="selected-schedule-title">Selected Schedule</div>
-        <div id="selectedScheduleContent" class="selected-schedule-text"></div>
-      </div>
-
       <div id="scheduleBox" class="schedule-box">
         <div class="schedule-title">Schedule</div>
         <div id="scheduleContent" class="schedule-content">스케줄 불러오는 중...</div>
@@ -483,11 +463,13 @@
   </div>
 
   <script>
-    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw4xYKnWxxQW3tpuso--K9JTXlBpWV1G0kx6AnN7fURd9l5XwPEvz5x0BsBpUVzFsU2dA/exec";
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx_1N1MfmM-f_Biqwa8iJkimfy8HHXSvmgc1UfyA4ZEza7nBQz2WCrnDidD9D1dr8v_/exec";
 
     let currentCalendarDate = new Date();
     let suppressSelectionClear = false;
     let WINDY_APP_STARTED = false;
+
+    const MONTH_TEXT = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
 
     function pad2(n) {
       return String(n).padStart(2, "0");
@@ -497,29 +479,44 @@
       return date.getFullYear() + "-" + pad2(date.getMonth() + 1) + "-" + pad2(date.getDate());
     }
 
+    function formatDdMmmFromYmd(ymd) {
+      const parts = String(ymd || "").split("-").map(Number);
+      if (parts.length !== 3) return ymd;
+
+      const month = parts[1];
+      const day = parts[2];
+
+      if (!month || !day || !MONTH_TEXT[month - 1]) return ymd;
+
+      return pad2(day) + MONTH_TEXT[month - 1];
+    }
+
+    function formatScheduleLabel(item) {
+      if (item.displayLabel) {
+        return item.displayLabel;
+      }
+
+      const airport = String(item.airport || "").toUpperCase();
+      const localDate = item.localDate || "";
+      const localTime = item.localTime || "";
+      const utcDate = item.utcDate || "";
+      const utcTime = item.utcTime || "";
+
+      if (utcDate && utcTime) {
+        return airport + " / " +
+          formatDdMmmFromYmd(localDate) + " " + localTime + "L" +
+          "(" + formatDdMmmFromYmd(utcDate) + " " + utcTime + "Z)";
+      }
+
+      return airport + " / " + formatDdMmmFromYmd(localDate) + " " + localTime + "L";
+    }
+
     function clearSelectedSchedule() {
       if (suppressSelectionClear) return;
-
-      const selectedBox = document.getElementById("selectedScheduleBox");
-      const selectedContent = document.getElementById("selectedScheduleContent");
-
-      selectedBox.style.display = "none";
-      selectedContent.innerHTML = "";
 
       document.querySelectorAll(".schedule-row").forEach(function(row) {
         row.classList.remove("active");
       });
-    }
-
-    function scrollToInputSection() {
-      const target = document.getElementById("inputSection");
-
-      if (target) {
-        target.scrollIntoView({
-          behavior: "smooth",
-          block: "start"
-        });
-      }
     }
 
     function openCalendar() {
@@ -656,15 +653,15 @@
           const text = document.createElement("div");
           text.className = "schedule-text";
 
+          const label = formatScheduleLabel(item);
+          text.title = label;
+
           const badge = document.createElement("span");
-          badge.className = "schedule-type-badge " + item.type.toLowerCase();
-          badge.textContent = item.type;
+          badge.className = "schedule-type-badge " + String(item.type || "").toLowerCase();
+          badge.textContent = item.type || "";
 
           const labelText = document.createElement("span");
-          labelText.textContent =
-            item.airport + " / " +
-            item.localDate + " " +
-            item.localTime;
+          labelText.textContent = label;
 
           text.appendChild(badge);
           text.appendChild(labelText);
@@ -677,7 +674,7 @@
           btn.addEventListener("click", function(event) {
             event.preventDefault();
             event.stopPropagation();
-            applySchedule(item, row);
+            applyScheduleAndOpen(item, row);
           });
 
           row.appendChild(text);
@@ -687,17 +684,15 @@
       });
     }
 
-    function applySchedule(item, selectedRow) {
+    function applyScheduleAndOpen(item, selectedRow) {
       suppressSelectionClear = true;
 
-      document.getElementById("icao").value = item.airport;
-      document.getElementById("localDate").value = item.localDate;
-      document.getElementById("localTime").value = item.localTime;
+      document.getElementById("icao").value = item.airport || "";
+      document.getElementById("localDate").value = item.localDate || "";
+      document.getElementById("localTime").value = item.localTime || "";
       document.getElementById("error").textContent = "";
 
       suppressSelectionClear = false;
-
-      updateSelectedScheduleDisplay(item);
 
       document.querySelectorAll(".schedule-row").forEach(function(row) {
         row.classList.remove("active");
@@ -707,21 +702,7 @@
         selectedRow.classList.add("active");
       }
 
-      setTimeout(scrollToInputSection, 80);
-    }
-
-    function updateSelectedScheduleDisplay(item) {
-      const selectedBox = document.getElementById("selectedScheduleBox");
-      const box = document.getElementById("selectedScheduleContent");
-
-      selectedBox.style.display = "block";
-
-      box.innerHTML = `
-        <strong>Aircraft:</strong> ${item.aircraft}<br>
-        <strong>Airport:</strong> ${item.airport}<br>
-        <strong>Type:</strong> ${item.type}<br>
-        <strong>Local Time:</strong> ${item.localDate} ${item.localTime}
-      `;
+      generateWindyLink();
     }
 
     async function generateWindyLink() {
@@ -770,7 +751,7 @@
       }
 
       button.disabled = true;
-      button.textContent = "Opening Windy...";
+      button.textContent = "Opening...";
       document.body.style.cursor = "wait";
 
       try {
@@ -867,21 +848,19 @@
       loadSchedules();
     }
 
-  (function waitForPortalAuth() {
-  // 1) 포털에서 이미 승인된 세션이면 먼저 앱 표시
-  if (sessionStorage.getItem("portalApproved") === "true") {
-    startWindyAppAfterAuth();
-  }
+    (function waitForPortalAuth() {
+      if (sessionStorage.getItem("portalApproved") === "true") {
+        startWindyAppAfterAuth();
+      }
 
-  // 2) 그래도 common-auth.js가 최종 승인 확인하면 통과
-  if (window.CURRENT_PORTAL_USER) {
-    sessionStorage.setItem("portalApproved", "true");
-    startWindyAppAfterAuth();
-    return;
-  }
+      if (window.CURRENT_PORTAL_USER) {
+        sessionStorage.setItem("portalApproved", "true");
+        startWindyAppAfterAuth();
+        return;
+      }
 
-  setTimeout(waitForPortalAuth, 200);
-})();
+      setTimeout(waitForPortalAuth, 200);
+    })();
   </script>
 
   <script src="https://accounts.google.com/gsi/client" async defer></script>
