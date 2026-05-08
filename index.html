@@ -463,7 +463,7 @@
   </div>
 
   <script>
-    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx_1N1MfmM-f_Biqwa8iJkimfy8HHXSvmgc1UfyA4ZEza7nBQz2WCrnDidD9D1dr8v_/exec";
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycby4jhlXuRLqGNKYp6ksad5mFgxDm6rBKQeTau3Wg0MV98tWxXAh6TxytF4w4dGT5oommQ/exec";
 
     let currentCalendarDate = new Date();
     let suppressSelectionClear = false;
@@ -491,25 +491,39 @@
       return pad2(day) + MONTH_TEXT[month - 1];
     }
 
-    function formatScheduleLabel(item) {
-      if (item.displayLabel) {
-        return item.displayLabel;
-      }
+  function formatScheduleLabel(item) {
+  const airport = String(item.airport || "").toUpperCase();
+  const localDate = item.localDate || "";
+  const localTime = item.localTime || "";
+  const utcDate = item.utcDate || "";
+  const utcTime = item.utcTime || "";
 
-      const airport = String(item.airport || "").toUpperCase();
-      const localDate = item.localDate || "";
-      const localTime = item.localTime || "";
-      const utcDate = item.utcDate || "";
-      const utcTime = item.utcTime || "";
+  function makeShortDate(ymd) {
+    const parts = String(ymd || "").split("-").map(Number);
+    if (parts.length !== 3) return "";
 
-      if (utcDate && utcTime) {
-        return airport + " / " +
-          formatDdMmmFromYmd(localDate) + " " + localTime + "L" +
-          "(" + formatDdMmmFromYmd(utcDate) + " " + utcTime + "Z)";
-      }
+    const monthText = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+    const month = parts[1];
+    const day = parts[2];
 
-      return airport + " / " + formatDdMmmFromYmd(localDate) + " " + localTime + "L";
-    }
+    if (!month || !day || !monthText[month - 1]) return "";
+
+    return pad2(day) + monthText[month - 1];
+  }
+
+  function makeShortTime(hhmm) {
+    return String(hhmm || "").replace(":", "");
+  }
+
+  const localText = makeShortDate(localDate) + "," + makeShortTime(localTime) + "L";
+
+  if (utcDate && utcTime) {
+    const utcText = makeShortDate(utcDate) + "," + makeShortTime(utcTime) + "Z";
+    return airport + " / " + localText + "(" + utcText + ")";
+  }
+
+  return airport + " / " + localText;
+}
 
     function clearSelectedSchedule() {
       if (suppressSelectionClear) return;
