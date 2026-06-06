@@ -635,6 +635,23 @@
       }
     }
 
+    function isScheduleFutureOrCurrent(item) {
+  const utcDate = String(item.utcDate || "").trim();
+  const utcTime = String(item.utcTime || "").trim();
+
+  if (!utcDate || !utcTime) return false;
+
+  // utcDate: YYYY-MM-DD
+  // utcTime: HH:mm
+  const utcDateTime = new Date(utcDate + "T" + utcTime + ":00Z");
+
+  if (isNaN(utcDateTime.getTime())) return false;
+
+  const nowUtc = new Date();
+
+  // 현재 UTC보다 과거이면 제외
+  return utcDateTime.getTime() >= nowUtc.getTime();
+}
     function renderSchedules(schedules) {
       const box = document.getElementById("scheduleContent");
       box.innerHTML = "";
@@ -642,7 +659,7 @@
       const aircraftList = ["ACJ", "G650"];
 
       aircraftList.forEach(function(aircraft) {
-        const items = schedules[aircraft] || [];
+   const items = (schedules[aircraft] || []).filter(isScheduleFutureOrCurrent);
 
         const icon = aircraft === "ACJ" ? "✈️" : "🛩️";
 
