@@ -884,12 +884,7 @@
     }
 
     (function waitForPortalAuth() {
-      if (sessionStorage.getItem("portalApproved") === "true") {
-        startWindyAppAfterAuth();
-      }
-
       if (window.CURRENT_PORTAL_USER) {
-        sessionStorage.setItem("portalApproved", "true");
         startWindyAppAfterAuth();
         return;
       }
